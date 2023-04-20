@@ -1,34 +1,39 @@
 import React from 'react';
-import './App.css';
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import {Auth} from "./components/Auth";
 import {Main} from "./components/Main";
 import {CreateRoom} from "./components/CreateRoom";
 import {Room} from "./components/Room";
+import {AppLayout} from "./layouts/AppLayout";
 
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Auth />
+    element: <AppLayout />,
+    children: [{
+      path: "/",
+      element: <Auth />
+    },
+    {
+      path: "/main",
+      element: <Main />
+    },
+    {
+      path: "/room/create",
+      element: <CreateRoom />
+    },
+    {
+      path: "/room/:roomId",
+      element: <Room />
+    }],
   },
-  {
-    path: "/main",
-    element: <Main />
-  },
-  {
-    path: "/room/create",
-    element: <CreateRoom />
-  },
-  {
-    path: "/room/:roomId",
-    element: <Room />
-  }
 ])
-function App() {
-  return (
-      <RouterProvider router={router}/>
 
+function App() {
+
+  return (
+      <RouterProvider router={router} />
   );
 }
 
