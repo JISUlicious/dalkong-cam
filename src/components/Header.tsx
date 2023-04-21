@@ -2,6 +2,7 @@ import React from "react";
 import {useAuthContext} from "../contexts/AuthContext";
 import {signOutApp} from "../functions/auth";
 import {useNavigate} from "react-router-dom";
+import "../styles/Header.scss";
 
 
 export function Header () {
@@ -12,7 +13,7 @@ export function Header () {
     return navigate("/");
   }
 
-  return <div>
+  return <div className="header">
     <h1>Header</h1>
     { user?.uid && <button
       className={"sign-out"}

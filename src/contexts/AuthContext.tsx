@@ -4,7 +4,7 @@ import {createContext, ReactNode, useContext, useEffect, useReducer, Dispatch} f
 
 interface Action {
   type: string
-  user: User | null
+  user?: User | null
 }
 
 interface AuthState {
@@ -17,12 +17,16 @@ interface AuthProviderProps {
   children?: ReactNode
 }
 
-const initialState = {auth, user: null, initialized: false}
+const initialState: AuthState = {auth, user: null, initialized: false}
 const AuthContext = createContext<AuthState>(initialState);
 const AuthDispatchContext = createContext<Dispatch<Action> | null>(null);
 
-export const useAuthContext = () => useContext(AuthContext);
-export const useAuthDispatchContext = () => useContext(AuthDispatchContext);
+export function useAuthContext () {
+  return useContext(AuthContext);
+}
+export function useAuthDispatchContext () {
+  return useContext(AuthDispatchContext);
+}
 
 export const authActionTypes = {
   signIn: "signIn",
@@ -39,7 +43,11 @@ export const authActionCreator = {
 const authReducer = (authState: AuthState, action: Action): AuthState => {
   switch (action.type) {
     case authActionTypes.signIn: {
-      return {...authState, user: action.user}
+      if (action.user !== undefined) {
+        return {...authState, user: action.user}
+      } else {
+        throw new Error("Action dose not have 'user' key-value pair.");
+      }
     }
     case authActionTypes.signOut: {
       return {...authState, user: null};
@@ -54,9 +62,7 @@ const authReducer = (authState: AuthState, action: Action): AuthState => {
 };
 
 export const AuthProvider = ({children}: AuthProviderProps) => {
-  const [state, dispatch] = useReducer(
-    authReducer, initialState
-  );
+  const [state, dispatch] = useReducer(authReducer, initialState);
 
   useEffect(() => {
     const unsubscribe = state.auth.onAuthStateChanged(function (user: User | null) {
