@@ -5,7 +5,8 @@ import {Main} from "./components/Main";
 import {CreateRoom} from "./components/CreateRoom";
 import {Room} from "./components/Room";
 import {AppLayout} from "./layouts/AppLayout";
-
+import "./styles/App.scss";
+import {RoomContextProvider} from "./contexts/RoomContext";
 
 const router = createBrowserRouter([
   {
@@ -33,7 +34,9 @@ const router = createBrowserRouter([
 function App() {
 
   return (
+    <RoomContextProvider>
       <RouterProvider router={router} />
+    </RoomContextProvider>
   );
 }
 

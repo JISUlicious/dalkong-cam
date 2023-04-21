@@ -2,6 +2,7 @@ import {Link, useNavigate} from "react-router-dom";
 import {useState} from "react";
 import React from "react";
 import {signInEmail, signUpEmail} from "../functions/auth";
+import "../styles/Auth.scss";
 
 export function Auth () {
   const navigate = useNavigate();
@@ -36,7 +37,7 @@ export function Auth () {
 
   const buttonText = signUp ? "Sign Up" : "Sign In";
 
-  return <div>
+  return <div className="app-body auth">
     <h1>Auth</h1>
     <Link to={"/main"}>to Main</Link>
 
@@ -50,7 +51,7 @@ export function Auth () {
       <button type="submit">{buttonText}</button>
     </form>
     <button
-      className={"sign-up"}
+      className={"sign-up text-only-button"}
       onClick={() => setSignUp(!signUp)}
     >
       {signUp ? "Already have an account" : "Sign up for new account"}
