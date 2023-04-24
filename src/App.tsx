@@ -1,12 +1,14 @@
+import "./styles/Reset.scss";
+import "./styles/App.scss";
 import React from 'react';
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
-import {Auth} from "./components/Auth";
+import {SignIn} from "./components/SignIn";
+import {SignUp} from "./components/SignUp";
 import {Main} from "./components/Main";
-import {CreateRoom} from "./components/CreateRoom";
-import {Room} from "./components/Room";
+import {CreateCamera} from "./components/CreateCamera";
+import {Viewer} from "./components/Viewer";
 import {AppLayout} from "./layouts/AppLayout";
-import "./styles/App.scss";
-import {RoomContextProvider} from "./contexts/RoomContext";
+import {Camera} from "./components/Camera";
 
 const router = createBrowserRouter([
   {
@@ -14,19 +16,27 @@ const router = createBrowserRouter([
     element: <AppLayout />,
     children: [{
       path: "/",
-      element: <Auth />
+      element: <SignIn />
+    },
+    {
+      path: "/sign-up",
+      element: <SignUp />
     },
     {
       path: "/main",
       element: <Main />
     },
     {
-      path: "/room/create",
-      element: <CreateRoom />
+      path: "/camera",
+      element: <CreateCamera />
     },
     {
-      path: "/room/:roomId",
-      element: <Room />
+      path: "/camera/:cameraId",
+      element: <Camera />
+    },
+    {
+      path: "/:viewerId",
+      element: <Viewer />
     }],
   },
 ])
@@ -34,9 +44,7 @@ const router = createBrowserRouter([
 function App() {
 
   return (
-    <RoomContextProvider>
-      <RouterProvider router={router} />
-    </RoomContextProvider>
+    <RouterProvider router={router} />
   );
 }
 
