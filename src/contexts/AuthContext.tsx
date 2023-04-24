@@ -66,7 +66,9 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
 
   useEffect(() => {
     const unsubscribe = state.auth.onAuthStateChanged(function (user: User | null) {
-      dispatch(authActionCreator.initAuth());
+      if (!state.initialized) {
+        dispatch(authActionCreator.initAuth());
+      }
       if (user) {
         dispatch(authActionCreator.signIn(user));
       } else {

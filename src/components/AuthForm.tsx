@@ -1,14 +1,16 @@
-import {Link, useNavigate} from "react-router-dom";
-import {useState} from "react";
-import React from "react";
+import React, {useState} from "react";
+import {useNavigate} from "react-router-dom";
 import {signInEmail, signUpEmail} from "../functions/auth";
-import "../styles/Auth.scss";
 
-export function Auth () {
+
+interface AuthFormProps {
+  signUp: boolean
+}
+
+export function AuthForm ({signUp = false}: AuthFormProps) {
   const navigate = useNavigate();
   const [inputId, setInputId] = useState("");
   const [inputPw, setInputPw] = useState("");
-  const [signUp, setSignUp] = useState(false);
 
   function onChangeId (event: React.ChangeEvent<HTMLInputElement>) {
     setInputId(event.target.value);
@@ -36,25 +38,13 @@ export function Auth () {
   }
 
   const buttonText = signUp ? "Sign Up" : "Sign In";
-
-  return <div className="app-body auth">
-    <h1>Auth</h1>
-    <Link to={"/main"}>to Main</Link>
-
-    <form onSubmit={onSubmit}>
-      <label>
-        <input onChange={onChangeId} placeholder="ID" required={true} />
-      </label>
-      <label>
-        <input onChange={onChangePw} placeholder="PW" required={true} type="password" />
-      </label>
-      <button type="submit">{buttonText}</button>
-    </form>
-    <button
-      className={"sign-up text-only-button"}
-      onClick={() => setSignUp(!signUp)}
-    >
-      {signUp ? "Already have an account" : "Sign up for new account"}
-    </button>
-  </div>;
+  return (<form onSubmit={onSubmit}>
+    <label>
+      <input onChange={onChangeId} placeholder="ID" required />
+    </label>
+    <label>
+      <input onChange={onChangePw} placeholder="PW" required type="password" />
+    </label>
+    <button type="submit">{buttonText}</button>
+  </form>);
 }
