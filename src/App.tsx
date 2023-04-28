@@ -9,6 +9,7 @@ import {CreateCamera} from "./components/CreateCamera";
 import {Viewer} from "./components/Viewer";
 import {AppLayout} from "./layouts/AppLayout";
 import {Camera} from "./components/Camera";
+import {StreamProvider} from "./contexts/StreamContext";
 
 const router = createBrowserRouter([
   {
@@ -44,7 +45,9 @@ const router = createBrowserRouter([
 function App() {
 
   return (
-    <RouterProvider router={router} />
+    <StreamProvider>
+      <RouterProvider router={router} />
+    </StreamProvider>
   );
 }
 

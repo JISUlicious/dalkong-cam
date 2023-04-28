@@ -13,6 +13,7 @@ interface HeaderProps {
 export function Header ({isSidebarOpen, toggleSidebar}: HeaderProps) {
   const { user } = useAuthContext();
   const navigate = useNavigate();
+
   function onSignOut () {
     signOutApp().then(() => navigate("/"));
   }

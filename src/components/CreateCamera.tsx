@@ -24,7 +24,7 @@ export function CreateCamera () {
         <input onChange={onChange} placeholder="Camera Name" required />
       </label>
       <button type="submit">
-        Camera
+        Start Camera
       </button>
     </form>
   </div>;

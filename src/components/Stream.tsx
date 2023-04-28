@@ -1,8 +1,7 @@
 import {useEffect, useRef} from "react";
 
-
 interface RTCStream {
-  stream: MediaStream | undefined
+  stream: MediaStream | null
 }
 
 export function Stream({stream}: RTCStream) {
@@ -11,8 +10,13 @@ export function Stream({stream}: RTCStream) {
     if (!streamRef.current)
       return;
     streamRef.current.srcObject = stream ? stream : null;
+    return () => {
+      stream?.getTracks().forEach((track) => {
+        track.stop();
+      });
+    }
   }, [stream]);
 
-  return (<video className="local-stream" ref={streamRef} autoPlay controls/>);
+  return (<video className="stream" ref={streamRef} autoPlay />);
 }
 
