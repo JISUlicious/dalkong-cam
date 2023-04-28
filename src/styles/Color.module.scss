@@ -1,0 +1,10 @@
+@import "Colors";
+
+:export {
+  primaryLightColor: $primary-light-color;
+  secondaryLightColor: $secondary-light-color;
+  ternaryLightColor: $ternary-light-color;
+  primaryAccentColor: $primary-accent-color;
+  secondaryAccentColor: $secondary-accent-color;
+  ternaryAccentColor: $ternary-accent-color;
+}
