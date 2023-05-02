@@ -2,9 +2,6 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  signInWithPopup,
-  GoogleAuthProvider,
-  FacebookAuthProvider
 } from "firebase/auth";
 import {auth} from "./firebaseInit";
 
