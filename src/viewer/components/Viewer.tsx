@@ -1,6 +1,6 @@
-import "../styles/Viewer.scss";
+import "../../common/styles/Viewer.scss";
 import {useParams} from "react-router-dom";
-import {CameraItem} from "./CameraItem";
+import {CameraItem} from "../../camera/components/CameraItem";
 
 export function Viewer () {
   const param = useParams();

@@ -20,18 +20,3 @@ export function signOutApp () {
 export function signUpEmail (id: string, pw: string) {
   return createUserWithEmailAndPassword(auth, id, pw);
 }
-
-export const OAuthProviderName = {
-  google: "Google",
-  facebook: "Facebook"
-};
-
-export function signInOAuth (OAuthType: string) {
-  const providerTypes = {
-    [OAuthProviderName.google]: new GoogleAuthProvider(),
-    [OAuthProviderName.facebook]: new FacebookAuthProvider()
-  };
-  const provider = providerTypes[OAuthType];
-
-  return signInWithPopup(auth, provider);
-}

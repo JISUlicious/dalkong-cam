@@ -1,16 +1,15 @@
-import "./styles/Reset.scss";
-import "./styles/App.scss";
-import React from 'react';
+import "./common/styles/Reset.scss";
+import "./common/styles/App.scss";
 import {BrowserRouter, Routes, Route, Navigate} from "react-router-dom";
-import {SignIn} from "./components/SignIn";
-import {SignUp} from "./components/SignUp";
-import {Main} from "./components/Main";
-import {CreateCamera} from "./components/CreateCamera";
-import {Viewer} from "./components/Viewer";
-import {AppLayout} from "./layouts/AppLayout";
-import {Camera} from "./components/Camera";
-import {StreamProvider} from "./contexts/StreamContext";
-import {useAuthContext} from "./contexts/AuthContext";
+import {SignIn} from "./auth/components/SignIn";
+import {SignUp} from "./auth/components/SignUp";
+import {Main} from "./common/components/Main";
+import {CreateCamera} from "./camera/components/CreateCamera";
+import {Viewer} from "./viewer/components/Viewer";
+import {AppLayout} from "./common/layouts/AppLayout";
+import {Camera} from "./camera/components/Camera";
+import {StreamProvider} from "./common/contexts/StreamContext";
+import {useAuthContext} from "./common/contexts/AuthContext";
 
 function App() {
   const {user} = useAuthContext();
@@ -26,7 +25,6 @@ function App() {
             <Route path="/camera/:cameraId" element={<Camera />} />
             <Route path="/viewer/:viewerId" element={<Viewer />} />
           </Route>
-
         </Routes>
       </BrowserRouter>
     </StreamProvider>
