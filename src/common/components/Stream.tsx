@@ -5,7 +5,7 @@ interface RTCStream {
 }
 
 export function Stream({stream}: RTCStream) {
-  const streamRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     if (!streamRef.current || !stream)
       return;

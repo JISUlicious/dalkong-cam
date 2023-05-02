@@ -1,5 +1,4 @@
 import "../styles/Header.scss";
-import React from "react";
 import {useAuthContext} from "../contexts/AuthContext";
 import {signOutApp} from "../functions/auth";
 import {useNavigate} from "react-router-dom";
