@@ -8,7 +8,7 @@ import {StreamActionCreator, useStreamContext, useStreamDispatchContext} from ".
 import {Controls} from "./Controls";
 
 export function Camera () {
-  const cameraId = useParams();
+  const {cameraId} = useParams();
   const {stream} = useStreamContext();
   const dispatch = useStreamDispatchContext();
   const savedTimes = ["2023-02-01 12:00:00", "2023-02-01 12:05:00", "2023-02-01 12:10:00", "a", "ddd", "aaa"];
@@ -17,12 +17,18 @@ export function Camera () {
     getMedia().then((mediaFromDevice) => {
       dispatch?.(StreamActionCreator.setStream(mediaFromDevice));
     });
+    return () => {
+      stream?.getTracks().forEach((track) => {
+        track.stop();
+      });
+      dispatch?.(StreamActionCreator.setStream(null));
+    }
   }, []);
 
   return (<div className="camera body-content">
     <div className="video-overlay">
       <Controls />
-      <h1 className="camera-name">camera {cameraId.cameraId}</h1>
+      <h1 className="camera-name">camera {cameraId}</h1>
     </div>
     <Stream stream={stream} />
     <div className="saved-videos local">

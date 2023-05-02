@@ -5,16 +5,12 @@ interface RTCStream {
 }
 
 export function Stream({stream}: RTCStream) {
-  const streamRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<HTMLVideoElement | null>(null);
   useEffect(() => {
-    if (!streamRef.current)
+    if (!streamRef.current || !stream)
       return;
-    streamRef.current.srcObject = stream ? stream : null;
-    return () => {
-      stream?.getTracks().forEach((track) => {
-        track.stop();
-      });
-    }
+    streamRef.current.srcObject = stream;
+
   }, [stream]);
 
   return (<video className="stream" ref={streamRef} autoPlay />);

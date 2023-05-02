@@ -24,13 +24,13 @@ export function AuthForm ({signUp = false}: AuthFormProps) {
     event.preventDefault();
     if (!signUp) {
       signInEmail(inputId, inputPw)
-        .then(() => navigate("/main"))
+        .then(() => navigate("/"))
         .catch((error: React.ErrorInfo) => {
           console.log(error);
         });
     } else {
       signUpEmail(inputId, inputPw)
-        .then(() => navigate("/main"))
+        .then(() => navigate("/"))
         .catch((error: React.ErrorInfo) => {
           console.log(error);
         });

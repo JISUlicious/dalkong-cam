@@ -20,7 +20,7 @@ const initialState = {
 };
 
 const StreamContext = createContext<StreamState>(initialState);
-const StreamDispatchContext = createContext<Dispatch<Action> | null>(null);
+const StreamDispatchContext = createContext<Dispatch<Action>>({} as Dispatch<Action>);
 
 export function useStreamContext () {
   return useContext(StreamContext);
