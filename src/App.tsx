@@ -1,7 +1,7 @@
 import "./styles/Reset.scss";
 import "./styles/App.scss";
 import React from 'react';
-import {createBrowserRouter, RouterProvider} from "react-router-dom";
+import {BrowserRouter, Routes, Route, Navigate} from "react-router-dom";
 import {SignIn} from "./components/SignIn";
 import {SignUp} from "./components/SignUp";
 import {Main} from "./components/Main";
@@ -10,43 +10,25 @@ import {Viewer} from "./components/Viewer";
 import {AppLayout} from "./layouts/AppLayout";
 import {Camera} from "./components/Camera";
 import {StreamProvider} from "./contexts/StreamContext";
-
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <AppLayout />,
-    children: [{
-      path: "/",
-      element: <SignIn />
-    },
-    {
-      path: "/sign-up",
-      element: <SignUp />
-    },
-    {
-      path: "/main",
-      element: <Main />
-    },
-    {
-      path: "/camera",
-      element: <CreateCamera />
-    },
-    {
-      path: "/camera/:cameraId",
-      element: <Camera />
-    },
-    {
-      path: "/:viewerId",
-      element: <Viewer />
-    }],
-  },
-])
+import {useAuthContext} from "./contexts/AuthContext";
 
 function App() {
-
+  const {user} = useAuthContext();
   return (
     <StreamProvider>
-      <RouterProvider router={router} />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<AppLayout />}>
+            <Route path="/" element={user ? <Main /> : <Navigate to={"/sign-in"} />} />
+            <Route path="/sign-in" element={!user ? <SignIn /> : <Navigate to={"/"} />} />
+            <Route path="/sign-up" element={<SignUp />} />
+            <Route path="/camera" element={<CreateCamera />} />
+            <Route path="/camera/:cameraId" element={<Camera />} />
+            <Route path="/viewer/:viewerId" element={<Viewer />} />
+          </Route>
+
+        </Routes>
+      </BrowserRouter>
     </StreamProvider>
   );
 }

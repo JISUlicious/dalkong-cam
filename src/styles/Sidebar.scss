@@ -3,12 +3,11 @@
 
 .sidebar {
   position: fixed;
-  top: calc($header-height - 1px);
+  top: $header-height;
   left: 0;
+  bottom: 0;
   background-color: $secondary-light-color;
   width: 30%;
-  height: calc(100% - #{$header-height} - 10px);
   color: $secondary-accent-color;
-  z-index: 1;
   padding: 10px 5px 2px;
 }

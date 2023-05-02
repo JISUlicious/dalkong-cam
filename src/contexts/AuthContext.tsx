@@ -19,7 +19,7 @@ interface AuthProviderProps {
 
 const initialState: AuthState = {auth, user: null, initialized: false}
 const AuthContext = createContext<AuthState>(initialState);
-const AuthDispatchContext = createContext<Dispatch<Action> | null>(null);
+const AuthDispatchContext = createContext<Dispatch<Action>>({} as Dispatch<Action>);
 
 export function useAuthContext () {
   return useContext(AuthContext);

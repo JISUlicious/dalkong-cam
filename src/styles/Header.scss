@@ -6,12 +6,11 @@ $header-height: 5%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 5px 5px;
+  padding: 5px;
   height: $header-height;
   background-color: $secondary-light-color;
   width: 100%;
   color: $secondary-accent-color;
-  z-index: 2;
   .box {
     display: flex;
     align-items: center;

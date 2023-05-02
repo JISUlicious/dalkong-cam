@@ -1,16 +1,15 @@
 import "../styles/Header.scss";
-import React, {Dispatch} from "react";
+import React from "react";
 import {useAuthContext} from "../contexts/AuthContext";
 import {signOutApp} from "../functions/auth";
 import {useNavigate} from "react-router-dom";
 import {FiMenu} from "react-icons/fi";
 
 interface HeaderProps {
-  isSidebarOpen: boolean,
-  toggleSidebar: Dispatch<boolean>
+  toggleSidebar: () => void
 }
 
-export function Header ({isSidebarOpen, toggleSidebar}: HeaderProps) {
+export function Header ({toggleSidebar}: HeaderProps) {
   const { user } = useAuthContext();
   const navigate = useNavigate();
 
@@ -18,13 +17,9 @@ export function Header ({isSidebarOpen, toggleSidebar}: HeaderProps) {
     signOutApp().then(() => navigate("/"));
   }
 
-  function onClickMenu () {
-    toggleSidebar(!isSidebarOpen);
-  }
-
   return <div className="header">
     <div className="menu-button-box box">
-      <FiMenu onClick={onClickMenu}/>
+      <FiMenu onClick={toggleSidebar}/>
     </div>
     <div className="title-box box">
       <h1>Header</h1>
