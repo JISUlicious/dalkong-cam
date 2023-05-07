@@ -1,7 +1,7 @@
-import {useEffect, useRef} from "react";
+import React, { useEffect, useRef } from "react";
 
 interface RTCStream {
-  stream: MediaStream | null
+  stream: MediaStream | null | undefined
 }
 
 export function Stream({stream}: RTCStream) {
@@ -10,9 +10,8 @@ export function Stream({stream}: RTCStream) {
     if (!streamRef.current || !stream)
       return;
     streamRef.current.srcObject = stream;
-
   }, [stream]);
 
-  return (<video className="stream" ref={streamRef} autoPlay />);
+  return (<video className="stream" ref={streamRef} autoPlay muted />);
 }
 

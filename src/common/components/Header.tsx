@@ -1,8 +1,9 @@
 import "../styles/Header.scss";
-import {useAuthContext} from "../contexts/AuthContext";
-import {signOutApp} from "../functions/auth";
-import {useNavigate} from "react-router-dom";
-import {FiMenu} from "react-icons/fi";
+import React from "react";
+import { useAuthContext } from "../contexts/AuthContext";
+import { signOutApp } from "../functions/auth";
+import { useNavigate } from "react-router-dom";
+import { FiMenu } from "react-icons/fi";
 
 interface HeaderProps {
   toggleSidebar: () => void

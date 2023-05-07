@@ -30,6 +30,8 @@ video {
   display: flex;
   width: 100%;
   background-color: transparent;
+  z-index: 90;
+  align-items: center;
 }
 
 .camera-name {
