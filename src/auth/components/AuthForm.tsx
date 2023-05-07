@@ -1,4 +1,4 @@
-import {Dispatch, FormEvent} from "react";
+import React, { Dispatch, FormEvent } from "react";
 
 interface AuthFormProps {
   buttonText: string,

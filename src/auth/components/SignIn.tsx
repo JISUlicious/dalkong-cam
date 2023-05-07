@@ -1,9 +1,9 @@
 import "../../common/styles/App.scss";
 import "../../common/styles/Auth.scss";
-import {useState} from "react";
-import {AuthForm} from "./AuthForm";
-import {Link, useNavigate} from "react-router-dom";
-import {signInEmail} from "../../common/functions/auth";
+import React, { useState } from "react";
+import { AuthForm } from "./AuthForm";
+import { Link, useNavigate } from "react-router-dom";
+import { signInEmail } from "../../common/functions/auth";
 
 export function SignIn () {
   const navigate = useNavigate();

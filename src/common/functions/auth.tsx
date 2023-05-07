@@ -3,7 +3,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
-import {auth} from "./firebaseInit";
+import { auth } from "./firebaseInit";
 
 
 export function signInEmail (id: string, pw: string) {

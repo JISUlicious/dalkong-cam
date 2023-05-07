@@ -1,25 +1,30 @@
-import {FiVolume2, FiVolumeX, FiMic, FiMicOff} from "react-icons/fi";
-import {useState} from "react";
+import { FiVolume2, FiVolumeX, FiMic, FiMicOff } from "react-icons/fi";
+import React, { useState } from "react";
+import { StreamActionCreator, useStreamDispatchContext } from "../contexts/StreamContext";
 
-export function Controls () {
-  const [isMicMuted, setIsMicMuted] = useState(false);
-  const [isSpeakerMuted, setIsSpeakerMuted] = useState(false);
+interface ControlsProps {
+  stream: MediaStream | null
+}
+
+export function Controls ({stream}: ControlsProps) {
+  const [isSpeakerMuted, setIsSpeakerMuted] = useState(true);
+  
+  const dispatch = useStreamDispatchContext();
 
   function onToggleMic () {
-    setIsMicMuted(!isMicMuted);
-    // mic off
+    dispatch?.(StreamActionCreator.toggleMuteLocalStream());
   }
 
   function onToggleSpeaker () {
+    // remoteStreams?.forEach(stream => stream.getAudioTracks().forEach(track => track.enabled = !isSpeakerMuted));
     setIsSpeakerMuted(!isSpeakerMuted);
-    // speaker off
   }
 
   return <div className="controls">
     <button className="icon-button" onClick={onToggleMic}>
-      {isMicMuted
-        ? <FiMicOff className="icon mic" />
-        : <FiMic className="icon mic" />
+      {stream?.getAudioTracks()[0].enabled
+        ? <FiMic className="icon mic" />
+        : <FiMicOff className="icon mic" />
       }
     </button>
     <button className="icon-button" onClick={onToggleSpeaker} >

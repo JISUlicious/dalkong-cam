@@ -1,6 +1,14 @@
 import {Auth, User} from "firebase/auth";
-import {auth} from "../functions/firebaseInit";
-import {createContext, ReactNode, useContext, useEffect, useReducer, Dispatch} from "react";
+import { auth } from "../functions/firebaseInit";
+import React,
+ { 
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useReducer,
+  Dispatch
+} from "react";
 
 interface Action {
   type: string

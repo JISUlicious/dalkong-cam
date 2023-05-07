@@ -1,7 +1,8 @@
 import "../styles/App.scss";
 import "../styles/Main.scss";
-import {Link} from "react-router-dom";
-import {useAuthContext} from "../contexts/AuthContext";
+import React from "react";
+import { Link } from "react-router-dom";
+import { useAuthContext } from "../contexts/AuthContext";
 
 export function Main () {
 
