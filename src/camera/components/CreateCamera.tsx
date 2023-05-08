@@ -2,8 +2,8 @@ import { useNavigate } from "react-router-dom";
 import React, { useState } from "react";
 import { useAuthContext } from "../../common/contexts/AuthContext";
 import { addItem } from "../../common/functions/storage";
-import { getDoc } from "firebase/firestore";
-import { StreamActionCreator, useStreamDispatchContext } from "../../common/contexts/StreamContext";
+import { DocumentSnapshot, getDoc } from "firebase/firestore";
+import { CameraState, StreamActionCreator, useStreamDispatchContext } from "../../common/contexts/StreamContext";
 
 export function CreateCamera () {
   const [input, setInput] = useState("");
@@ -25,7 +25,7 @@ export function CreateCamera () {
       console.log(docRef);
       getDoc(docRef).then(doc => {
         console.log(doc);
-        dispatch(StreamActionCreator.setCamera(doc));
+        dispatch(StreamActionCreator.setCamera(doc as CameraState));
         navigate(`/camera/${docRef.id}`);
       });
     });

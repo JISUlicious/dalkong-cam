@@ -12,6 +12,6 @@ export function Stream({stream}: RTCStream) {
     streamRef.current.srcObject = stream;
   }, [stream]);
 
-  return (<video className="stream" ref={streamRef} autoPlay muted />);
+  return (<video className="stream" ref={streamRef} autoPlay muted controls />);
 }
 
