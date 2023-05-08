@@ -22,7 +22,7 @@ export function CameraItem({viewerId, camera}: CameraItemProps) {
   }
 
   const connection = useMemo(() => {
-    const connection = new RTCPeerConnection(openRelayTurnServer)
+    const connection = new RTCPeerConnection(openRelayTurnServer);
     connection.onicecandidate = (event) => {
       if (!event.candidate) {
         return;
@@ -59,6 +59,7 @@ export function CameraItem({viewerId, camera}: CameraItemProps) {
           }
         };
         updateItem(key, viewerWithAnswer);
+        console.log(connection);
       }
     }
 
@@ -69,7 +70,6 @@ export function CameraItem({viewerId, camera}: CameraItemProps) {
       if (!connection.currentRemoteDescription && data?.answer) {
         const answer = new RTCSessionDescription(data.answer);
         await connection.setRemoteDescription(answer);
-        console.log("answer received");
         }
     }, (error) => console.log(error));
 

@@ -2,50 +2,70 @@ import "../../common/styles/Camera.scss";
 import { useParams } from "react-router-dom";
 import { VideoItem } from "../../viewer/components/VideoItem";
 import { Stream } from "../../common/components/Stream";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Dispatch, ReactNode, useEffect, useMemo, useState } from "react";
 import { getMedia } from "../../common/functions/getMedia";
 import {
+  Action,
   StreamActionCreator,
   useStreamContext,
   useStreamDispatchContext
 } from "../../common/contexts/StreamContext";
 import openRelayTurnServer from "../../turnSettings";
 import { useAuthContext } from "../../common/contexts/AuthContext";
-import { addItem, updateItem } from "../../common/functions/storage";
+import { addItem, removeItem, removeItems, updateItem } from "../../common/functions/storage";
 import { VideoOverlay } from "../../common/components/VideoOverlay";
 import { collection, doc, onSnapshot, query } from "firebase/firestore";
 import { db } from "../../common/functions/firebaseInit";
-import { getEventListeners } from "events";
-import { useLocalStream } from "../../common/hooks/useLocalStream";
+import { AudioStream } from "./AudioStream";
+
+// TODO:
+// 여러 뷰어가 있을 때도 작동하도록 만들기
+// 뷰어 재접속 시 뷰어에서 연결 안되는 문제 해결하기
+
+
+async function removeCamera(key: string) {
+  await removeItems(key + "/answeringCandidates");
+  await removeItems(key + "/offeringCandidates");
+  await removeItem(key);
+}
+
+async function setCameraConnection (
+  localStream: MediaStream | null,
+  dispatch: Dispatch<Action>,
+  connection: RTCPeerConnection,
+  key: string
+  ) {
+  if (!localStream || !localStream?.active) {
+    const localMedia = await getMedia();
+    dispatch?.(StreamActionCreator.setLocalStream(localMedia));
+    localMedia.getTracks().forEach(track => connection.addTrack(track, localMedia));
+    
+    const offer = await connection.createOffer();
+    await connection.setLocalDescription(offer).catch(error => console.log(error));
+
+    const cameraWithOffer = {
+      offer: {
+        type: offer.type,
+        sdp: offer.sdp
+      }
+    };
+
+    updateItem(key, cameraWithOffer);
+  }
+}
 
 export function Camera () {
   const {user} = useAuthContext();
   const {cameraId} = useParams();
-  const {camera, localStream} = useStreamContext();
+  const {camera, localStream, remoteStreams} = useStreamContext();
+  const [viewerItems, setViewerItems] = useState<ReactNode[]>([] as ReactNode[]);
   const dispatch = useStreamDispatchContext();
-  const [remoteStreams, setRemoteStreams] = useState<MediaStream[] | null>(null);
   const savedTimes = ["2023-02-01 12:00:00", "2023-02-01 12:05:00", "2023-02-01 12:10:00", "a", "ddd", "aaa"];
 
-  // get media
-  // connection
-  // create offer
-  // set local description
-  // set offer on firestore
-  // add local tracks
-  // set local stream
-  // onSnapshot for camera doc change
-
-  // TODO: 
-  // add eventlisteners for icecandidates, tracks
-  // add onSnapshot for answeringCandidates
-
-
   const connection = useMemo(() => {
-    console.log("creating connection");
     const connection = new RTCPeerConnection(openRelayTurnServer);
 
     connection.onicecandidate = (event) => {
-      console.log("onicecandidate");
       if (!event.candidate) {
         return;
       }
@@ -55,6 +75,7 @@ export function Camera () {
   
     connection.ontrack = (event) => {
       console.log("track event", event);
+
     };
 
     return connection;
@@ -63,34 +84,14 @@ export function Camera () {
   
   useEffect(() => {
     const key = `users/${user?.uid}/cameras/${cameraId}`;
-    async function setCameraConnection () {
-      if (!localStream || !localStream?.active) {
-        const localMedia = await getMedia();
-        dispatch?.(StreamActionCreator.setLocalStream(localMedia));
-        localMedia.getTracks().forEach(track => connection.addTrack(track, localMedia));
-        
-        const offer = await connection.createOffer();
-        await connection.setLocalDescription(offer).catch(error => console.log(error));
-
-        const cameraWithOffer = {
-          offer: {
-            type: offer.type,
-            sdp: offer.sdp
-          }
-        };
-
-        updateItem(key, cameraWithOffer);
-      }
-    }
-
-    setCameraConnection();
+    
+    setCameraConnection(localStream, dispatch, connection, key);
     
     const unsubscribeCameraDoc = onSnapshot(doc(db, key), async (snapshot) => {
       const data = snapshot.data();
       if (!connection.currentRemoteDescription && data?.answer) {
         const answer = new RTCSessionDescription(data.answer);
         await connection.setRemoteDescription(answer);
-        console.log("answer received");
         }
     }, (error) => console.log(error));
 
@@ -111,8 +112,21 @@ export function Camera () {
       unsubscribeCameraDoc();
       unsubscribeAnsweringCandidatesCollection();
       connection.close();
+      const key = `users/${user?.uid}/cameras/${cameraId}`;
+      removeCamera(key);
     };
   }, []);
+  
+  useEffect(() => {
+    if (remoteStreams) {
+      for (const [id, stream] of Object.entries(remoteStreams)) {
+        const viewerAudio = (<li key={id}>
+          <AudioStream stream={stream} />
+        </li>);
+        setViewerItems(prev => [...prev, viewerAudio]);
+      }
+    }
+  }, [remoteStreams]);
   
   return (<div className="camera body-content">
     <div className="video-wrapper">
@@ -122,12 +136,7 @@ export function Camera () {
     </div>
     <div className="remote-media">
       <ul>
-        {/* TODO: key 적당한 것으로 변경 */}
-        {remoteStreams?.map((remoteStream, i) => {
-          return (<li key={i}>
-            <Stream stream={remoteStream} />
-          </li>)
-        })}
+        {remoteStreams ? viewerItems : null}
       </ul>
     </div>
     <div className="saved-videos local">

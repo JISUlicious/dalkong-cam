@@ -1,5 +1,5 @@
-import { DocumentData, DocumentSnapshot } from "firebase/firestore";
-import React, { createContext, Dispatch, PropsWithChildren, ReactNode, useContext, useReducer } from "react"
+import { DocumentSnapshot } from "firebase/firestore";
+import React, { createContext, Dispatch, PropsWithChildren, useContext, useReducer } from "react"
 
 export interface CameraDoc {
   cameraName: string,
@@ -28,6 +28,7 @@ type StreamActionType = "setCamera"
   | "setLocalStream" 
   | "toggleMuteLocalStream" 
   | "addRemoteCamera" 
+  | "clearRemoteCameras"
   | "addRemoteStream"
   | "removeRemoteStream";
 
@@ -57,10 +58,11 @@ export function useStreamDispatchContext () {
 
 export const StreamActionCreator = {
   addRemoteCamera: (doc: CameraState): Action => ({type: "addRemoteCamera", camera: doc}),
-  addRemoteStream: (id: string, stream: MediaStream): Action => ({type: "addRemoteStream", stream: stream, id: id}),
+  clearRemoteCameras: (): Action => ({type: "clearRemoteCameras"}),
   setCamera: (doc: CameraState): Action => ({type: "setCamera", camera: doc}),
   setLocalStream: (stream: MediaStream| null): Action => ({type: "setLocalStream", stream: stream}),
   toggleMuteLocalStream: (): Action => ({type: "toggleMuteLocalStream"}),
+  addRemoteStream: (id: string, stream: MediaStream): Action => ({type: "addRemoteStream", stream: stream, id: id}),
   removeRemoteStream: (id: string): Action => ({type: "removeRemoteStream", id: id})
 };
 
@@ -75,12 +77,9 @@ export function streamReducer (streamState: StreamState, action: Action): Stream
     }
     case "setLocalStream": {
       if (action?.stream) {
-        console.log(action.stream);
         return {...streamState, localStream: action.stream};
       } else if (action.stream === null) {
-        streamState.localStream?.getTracks().forEach(track => {
-          console.log("stopping tracks");
-          track.stop()});
+        streamState.localStream?.getTracks().forEach(track => track.stop());
         return {...streamState, localStream: null};
       } else {
         throw new Error("'setLocalStream' action requires 'stream'");
@@ -94,24 +93,36 @@ export function streamReducer (streamState: StreamState, action: Action): Stream
     }
     case "addRemoteCamera": {
       if (action?.camera) {
-        return {...streamState, remoteCameras: {...streamState.remoteCameras, [action.camera.id]: action.camera}};
+        return {
+          ...streamState,
+          remoteCameras: {
+            ...streamState.remoteCameras,
+            [action.camera.id]: action.camera
+          }
+        };
       } else {
         throw new Error("'addRemoteCamera' action requires 'camera'");
       }
     }
+    case "clearRemoteCameras": {
+      return {...streamState, remoteCameras: {} as RemoteCameras};
+    }
     case "addRemoteStream": {
       if (action?.stream) {
-        return {...streamState, remoteStreams: {...streamState.remoteStreams, [action.id as string]: action.stream}};
+        return {
+          ...streamState,
+          remoteStreams: {
+            ...streamState.remoteStreams,
+            [action.id as string]: action.stream
+          }
+        };
       } else {
         throw new Error("'addRemoteStream' action requires 'id' and 'stream");
       }
     }
     case "removeRemoteStream": {
       if (action?.id && streamState.remoteStreams?.[action!.id]) {
-        streamState.remoteStreams?.[action!.id].getTracks().forEach(track => {
-          console.log("stopping remote tracks");
-          track.stop();
-        });
+        streamState.remoteStreams?.[action!.id].getTracks().forEach(track => track.stop());
         delete streamState.remoteStreams[action!.id];
         return {...streamState, remoteStreams: {...streamState.remoteStreams}};
       } else {

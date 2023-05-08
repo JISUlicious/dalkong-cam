@@ -1,14 +1,20 @@
 import "../../common/styles/Viewer.scss";
-import React, { ReactNode, useEffect, useMemo, useState } from "react";
+import React, { ReactNode, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { CameraItem } from "./CameraItem";
-import { addItem, getItem, updateItem } from "../../common/functions/storage";
+import { getItem} from "../../common/functions/storage";
 import { useAuthContext } from "../../common/contexts/AuthContext";
-import { CameraDoc, CameraState, StreamActionCreator, useStreamContext, useStreamDispatchContext } from "../../common/contexts/StreamContext";
-import openRelayTurnServer from "../../turnSettings";
+import { 
+  CameraState,
+  StreamActionCreator,
+  useStreamContext,
+  useStreamDispatchContext
+} from "../../common/contexts/StreamContext";
 import { getMedia } from "../../common/functions/getMedia";
-import { onSnapshot, query, doc, collection } from "firebase/firestore";
-import { db } from "../../common/functions/firebaseInit";
+
+
+// TODO: 
+// viewer로 재접속 시 연결 안되는 것 해결
 
 export function Viewer () {
   const {viewerId} = useParams();
@@ -17,10 +23,6 @@ export function Viewer () {
 
   const dispatch = useStreamDispatchContext();
   
-  // TODO: 
-  // add eventlisteners for icecandidates, tracks
-  // add onSnapshot for answeringCandidates
-  // add onSnapshot for camera doc change
   useEffect(() => {
     const key = `users/${viewerId}/cameras`;
     getItem(key).then(snapshot => {
@@ -33,6 +35,7 @@ export function Viewer () {
 
     return () => {
       dispatch(StreamActionCreator.setLocalStream(null));
+      dispatch(StreamActionCreator.clearRemoteCameras());
     }
   }, []);
 
@@ -40,7 +43,7 @@ export function Viewer () {
   const cameraItems: ReactNode[] = [];
   if (remoteCameras) {
     for (const [id, camera] of Object.entries(remoteCameras)) {
-      const cameraItem = (<li key={camera.id}>
+      const cameraItem = (<li key={id}>
         <CameraItem 
           viewerId={viewerId!}
           camera={camera}
