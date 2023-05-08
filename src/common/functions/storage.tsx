@@ -9,8 +9,6 @@ import {
   QuerySnapshot,
   DocumentData,
   deleteDoc,
-  QueryConstraint,
-  QueryCompositeFilterConstraint,
   QueryFieldFilterConstraint
 } from "firebase/firestore";
 
@@ -75,7 +73,6 @@ export function removeItem(key: string) {
  * @returns {Promise<void>}
  */
 export function removeItems(key: string) {
-  console.log(removeItems);
   return getDocs(query(collection(db, key)))
   .then(res => res.docs.forEach(doc => deleteDoc(doc.ref)));
 }

@@ -4,14 +4,14 @@ interface RTCStream {
   stream: MediaStream | null | undefined
 }
 
-export function Stream({stream}: RTCStream) {
-  const streamRef = useRef<HTMLVideoElement>(null);
+export function AudioStream({stream}: RTCStream) {
+  const streamRef = useRef<HTMLAudioElement>(null);
   useEffect(() => {
     if (!streamRef.current || !stream)
       return;
     streamRef.current.srcObject = stream;
   }, [stream]);
 
-  return (<video className="stream" ref={streamRef} autoPlay controls />);
+  return (<audio className="stream" ref={streamRef} autoPlay controls />);
 }
 
