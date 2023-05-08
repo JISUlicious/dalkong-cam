@@ -8,13 +8,16 @@ export const useCameraDocOnSnapshotChange = (uid: string, cameraId: string, conn
     useEffect(() => {
       if (uid && cameraId) {
         const key = `users/${uid}/cameras/${cameraId}`;
-        const unsubscribe = onSnapshot(doc(db, key), (snapshot) => {
+        const unsubscribe = onSnapshot(doc(db, key), async (snapshot) => {
           const data = snapshot.data();
+          console.log("useCameraDoc~~", data);
           if (!connection.currentRemoteDescription && data?.answer) {
-            const answer = new RTCSessionDescription(data.answer)
-            connection.setRemoteDescription(answer);
+            console.log("session");
+            const answer = new RTCSessionDescription(data.answer);
+            await connection.setRemoteDescription(answer);
             }
         }, (error) => console.log(error));
+        console.log("connection state", connection.connectionState);
         return () => unsubscribe();
       }
       }, [uid, cameraId, connection]

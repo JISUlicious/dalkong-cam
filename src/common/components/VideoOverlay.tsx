@@ -4,7 +4,7 @@ import { CameraState } from "../contexts/StreamContext";
 
 interface VideoOverlayProps {
   stream: MediaStream | null,
-  camera: CameraState | undefined
+  camera: CameraState | null
 }
 
 export function VideoOverlay({stream, camera}: VideoOverlayProps) {
