@@ -78,6 +78,11 @@ export function Camera () {
 
     };
 
+    connection.onconnectionstatechange = (event) => {
+      console.log(event);
+      console.log(connection.connectionState);
+    };
+
     return connection;
   }, []);
   
@@ -92,7 +97,10 @@ export function Camera () {
       if (!connection.currentRemoteDescription && data?.answer) {
         const answer = new RTCSessionDescription(data.answer);
         await connection.setRemoteDescription(answer);
-        }
+      } else if (connection.currentRemoteDescription && !data?.answer) {
+        connection.close();
+      }
+
     }, (error) => console.log(error));
 
     const q = query(
