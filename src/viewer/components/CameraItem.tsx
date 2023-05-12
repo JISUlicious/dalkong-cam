@@ -2,7 +2,7 @@ import React, { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Stream } from "../../common/components/Stream";
 import { CameraState, StreamActionCreator, useStreamContext, useStreamDispatchContext } from "../../common/contexts/StreamContext";
-import { addItem, updateItem } from "../../common/functions/storage";
+import { addItem, removeField, removeItem, removeItems, updateItem } from "../../common/functions/storage";
 import { collection, doc, onSnapshot, query, } from "firebase/firestore";
 import openRelayTurnServer from "../../turnSettings";
 import { db } from "../../common/functions/firebaseInit";
@@ -27,7 +27,7 @@ export function CameraItem({viewerId, camera}: CameraItemProps) {
       if (!event.candidate) {
         return;
       }
-      const key = `users/${viewerId}/cameras/${camera?.id}/offeringCandidates`; 
+      const key = `users/${viewerId}/cameras/${camera?.id}/answeringCandidates`; 
       addItem(key, event.candidate.toJSON());
     };
   
@@ -89,7 +89,10 @@ export function CameraItem({viewerId, camera}: CameraItemProps) {
     console.log("connection status", connection.connectionState);
     return () => {
       unsubscribeCameraDoc();
+      const key = `users/${viewerId}/cameras/${camera?.id}`;
+      removeField(key, "answer");
       unsubscribeOfferingCandidatesCollection();
+      removeItems(key + "/answeringCandidates");
       remoteStreams?.[camera!.id]?.getTracks().forEach(track => track.stop());
       connection.close();
     }
