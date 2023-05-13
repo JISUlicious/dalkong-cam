@@ -19,7 +19,7 @@ export function CameraItem({camera}: CameraItemProps) {
   const dispatch = useStreamDispatchContext();
 
   function onClick () {
-    navigate(`/viewer/${viewer!.id}/camera/${camera!.id}`); // TODO: make route
+    navigate(`/viewer/${viewer?.id}/camera/${camera.id}`); // TODO: make route
   }
 
   const connection = useMemo(() => {
