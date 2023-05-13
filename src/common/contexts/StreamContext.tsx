@@ -142,9 +142,9 @@ export function streamReducer (streamState: StreamState, action: Action): Stream
       }
     }
     case "removeRemoteStream": {
-      if (action?.id && streamState.remoteStreams?.[action!.id]) {
-        streamState.remoteStreams?.[action!.id].getTracks().forEach(track => track.stop());
-        delete streamState.remoteStreams[action!.id];
+      if (action?.id && streamState.remoteStreams?.[action.id]) {
+        streamState.remoteStreams?.[action.id].getTracks().forEach(track => track.stop());
+        delete streamState.remoteStreams[action.id];
         return {...streamState, remoteStreams: {...streamState.remoteStreams}};
       } else {
         throw new Error("'removeRemoteStream' action requires 'id'");
