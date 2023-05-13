@@ -9,6 +9,15 @@ export interface CameraDoc {
 
 export type CameraState = DocumentSnapshot<CameraDoc>;
 
+export interface ViewerDoc {
+  cameraName: string,
+  offer?: RTCSessionDescriptionInit,
+  answer?: RTCSessionDescriptionInit
+}
+
+export type ViewerState = DocumentSnapshot<CameraDoc>;
+
+
 interface RemoteStreams {
   [id: string]: MediaStream
 }
@@ -19,12 +28,14 @@ interface RemoteCameras {
 
 interface StreamState {
   camera: CameraState | null,
+  viewer: ViewerState | null,
   localStream: MediaStream | null,
   remoteStreams: RemoteStreams | null,
-  remoteCameras: RemoteCameras | null
+  remoteCameras: RemoteCameras
 }
 
 type StreamActionType = "setCamera" 
+  | "setViewer"
   | "setLocalStream" 
   | "toggleMuteLocalStream" 
   | "addRemoteCamera" 
@@ -36,11 +47,13 @@ export interface Action {
   type: StreamActionType,
   stream?: MediaStream | null,
   camera?: CameraState,
+  viewer?: ViewerState,
   id?: string
 }
 
 const initialState = {
   camera: null,
+  viewer: null,
   localStream: null,
   remoteStreams: {} as RemoteStreams,
   remoteCameras: {} as RemoteCameras
@@ -60,6 +73,7 @@ export const StreamActionCreator = {
   addRemoteCamera: (doc: CameraState): Action => ({type: "addRemoteCamera", camera: doc}),
   clearRemoteCameras: (): Action => ({type: "clearRemoteCameras"}),
   setCamera: (doc: CameraState): Action => ({type: "setCamera", camera: doc}),
+  setViewer: (doc: ViewerState): Action => ({type: "setViewer", viewer: doc}),
   setLocalStream: (stream: MediaStream| null): Action => ({type: "setLocalStream", stream: stream}),
   toggleMuteLocalStream: (): Action => ({type: "toggleMuteLocalStream"}),
   addRemoteStream: (id: string, stream: MediaStream): Action => ({type: "addRemoteStream", stream: stream, id: id}),
@@ -73,6 +87,13 @@ export function streamReducer (streamState: StreamState, action: Action): Stream
         return {...streamState, camera: action.camera};
       } else {
         throw new Error("'setCamera' action requires 'camera'");
+      }
+    }
+    case "setViewer": {
+      if (action?.viewer) {
+        return {...streamState, viewer: action.viewer};
+      } else {
+        throw new Error("'setViewr' action requires 'viewer'");
       }
     }
     case "setLocalStream": {

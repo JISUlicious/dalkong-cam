@@ -2,32 +2,57 @@ import React, { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Stream } from "../../common/components/Stream";
 import { CameraState, StreamActionCreator, useStreamContext, useStreamDispatchContext } from "../../common/contexts/StreamContext";
-import { addItem, removeField, removeItem, removeItems, updateItem } from "../../common/functions/storage";
+import { addItem, removeItem, removeItems, updateItem } from "../../common/functions/storage";
 import { collection, doc, onSnapshot, query, } from "firebase/firestore";
 import openRelayTurnServer from "../../turnSettings";
 import { db } from "../../common/functions/firebaseInit";
+import { useAuthContext } from "../../common/contexts/AuthContext";
 
 interface CameraItemProps {
-  viewerId: string,
   camera: CameraState
 }
 
-export function CameraItem({viewerId, camera}: CameraItemProps) {
-  const {remoteStreams, localStream} = useStreamContext();
+export function CameraItem({camera}: CameraItemProps) {
+  const {remoteStreams, localStream, viewer} = useStreamContext();
+  const {user} = useAuthContext();
   const navigate = useNavigate();
   const dispatch = useStreamDispatchContext();
 
   function onClick () {
-    navigate(`/viewer/${viewerId}/camera/${camera!.id}`); // TODO: make route
+    navigate(`/viewer/${viewer!.id}/camera/${camera!.id}`); // TODO: make route
   }
 
   const connection = useMemo(() => {
     const connection = new RTCPeerConnection(openRelayTurnServer);
+    return connection;
+  }, [viewer]);
+
+  useEffect(() => {
+    const key = `users/${user?.uid}/cameras/${camera?.id}`;
+    async function setViewerConnection() {
+      if (localStream && localStream?.active && viewer && connection) {
+        localStream.getTracks().forEach(track => connection.addTrack(track, localStream));
+        const offer = await connection.createOffer();
+        await connection.setLocalDescription(offer).catch(error => console.log(error));
+    
+        const viewerWithOffer = {
+          offer: {
+            type: offer.type,
+            sdp: offer.sdp
+          }
+        };
+      
+        updateItem(key + "/viewers/" + viewer?.id, viewerWithOffer)
+      }
+    }
+
+    setViewerConnection();
+
     connection.onicecandidate = (event) => {
       if (!event.candidate) {
         return;
       }
-      const key = `users/${viewerId}/cameras/${camera?.id}/answeringCandidates`; 
+      const key = `users/${user?.uid}/cameras/${camera.id}/viewers/${viewer?.id}/offeringCandidates`; 
       addItem(key, event.candidate.toJSON());
     };
   
@@ -35,72 +60,51 @@ export function CameraItem({viewerId, camera}: CameraItemProps) {
       const [remoteStream] = event.streams;
       dispatch(StreamActionCreator.addRemoteStream(camera.id, remoteStream));
     };
-    
-    return connection;
-  }, []);
-  
-  useEffect(() => {
-    const key = `users/${viewerId}/cameras/${camera?.id}`;
-    async function setViewerConnection() {
-      const data = camera?.data();
-      if (data?.offer && localStream) {
-        const offer = data.offer;
-        
-        await connection.setRemoteDescription(offer);
-        localStream.getTracks().forEach(track => connection.addTrack(track, localStream));
-        dispatch(StreamActionCreator.setLocalStream(localStream));
 
-        const answer = await connection.createAnswer();
-        await connection.setLocalDescription(answer);
-        const viewerWithAnswer = {
-          answer: {
-            type: answer.type,
-            sdp: answer.sdp
-          }
-        };
-        updateItem(key, viewerWithAnswer);
-        console.log(connection);
-      }
-    }
-
-    setViewerConnection();
-
-    const unsubscribeCameraDoc = onSnapshot(doc(db, key), async (snapshot) => {
+    const viewerKey = key + "/viewers/" + viewer?.id;
+    const unsubscribeViewerDoc = onSnapshot(doc(db, viewerKey), async (snapshot) => {
       const data = snapshot.data();
-      if (!connection.currentRemoteDescription && data?.answer) {
+      if (!connection?.currentRemoteDescription && data?.answer) {
         const answer = new RTCSessionDescription(data.answer);
-        await connection.setRemoteDescription(answer);
+        await connection?.setRemoteDescription(answer);
         }
     }, (error) => console.log(error));
 
     const q = query(
-      collection(db, key, "offeringCandidates")
+      collection(db, viewerKey, "answeringCandidates")
     );
-    const unsubscribeOfferingCandidatesCollection = onSnapshot(q, async (snapshot) => {
+    const unsubscribeAnsweringCandidatesCollection = onSnapshot(q, async (snapshot) => {
       snapshot.docChanges().forEach((change) => {
         if (change.type === "added") {
           const data = change.doc.data();
-          connection.addIceCandidate(new RTCIceCandidate(data));
+          connection?.addIceCandidate(new RTCIceCandidate(data));
         }
       });
     }, (error) => console.log(error));
 
     
-    console.log("connection status", connection.connectionState);
+    console.log("connection status", connection?.connectionState);
     return () => {
-      unsubscribeCameraDoc();
-      const key = `users/${viewerId}/cameras/${camera?.id}`;
-      removeField(key, "answer");
-      unsubscribeOfferingCandidatesCollection();
+      unsubscribeViewerDoc();
+      unsubscribeAnsweringCandidatesCollection();
+
+      const key = `users/${user?.uid}/cameras/${camera?.id}/viewers/${viewer?.id}`;
       removeItems(key + "/answeringCandidates");
-      remoteStreams?.[camera!.id]?.getTracks().forEach(track => track.stop());
+      removeItems(key + "/offeringCandidates");
+      removeItem(key);
+      
+      for (const id in remoteStreams) {
+        dispatch(StreamActionCreator.removeRemoteStream(id));
+      }
+      dispatch(StreamActionCreator.clearRemoteCameras());
+
       connection.close();
     }
-  }, []);
+  }, [viewer]);
 
 
   return (<div className="camera-item" onClick={onClick}>
     <h1>{camera.data()?.cameraName}</h1>
-    <Stream stream={remoteStreams?.[camera!.id]} />
+    <Stream stream={remoteStreams?.[camera?.id]} />
   </div>);
 }
