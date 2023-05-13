@@ -1,35 +1,39 @@
 import "../../common/styles/Viewer.scss";
 import React, { ReactNode, useEffect } from "react";
-import { useParams } from "react-router-dom";
 import { CameraItem } from "./CameraItem";
-import { getItem} from "../../common/functions/storage";
+import { addItem, getItem} from "../../common/functions/storage";
 import { useAuthContext } from "../../common/contexts/AuthContext";
 import { 
   CameraState,
   StreamActionCreator,
+  ViewerState,
   useStreamContext,
   useStreamDispatchContext
 } from "../../common/contexts/StreamContext";
 import { getMedia } from "../../common/functions/getMedia";
-
-
-// TODO: 
-// viewer로 재접속 시 연결 안되는 것 해결
+import { getDoc } from "firebase/firestore";
 
 export function Viewer () {
-  const {viewerId} = useParams();
   const {user} = useAuthContext();
   const {remoteCameras} = useStreamContext();
 
   const dispatch = useStreamDispatchContext();
   
   useEffect(() => {
-    const key = `users/${viewerId}/cameras`;
-    getItem(key).then(snapshot => {
-      snapshot.docs.forEach((document) => {
-        dispatch(StreamActionCreator.addRemoteCamera(document as CameraState));
-      });
-    });
+    async function setViewerDoc () {
+      if (user) {
+        const key = `users/${user?.uid}/cameras`;
+        const snapshot = await getItem(key);
+        snapshot.docs.forEach(async (document) => {
+          const docRef = await addItem(`${key}/${document.id}/viewers`, {});
+          const doc = await getDoc(docRef);
+          dispatch(StreamActionCreator.setViewer(doc as ViewerState));
+          dispatch(StreamActionCreator.addRemoteCamera(document as CameraState))
+        });
+      }
+    }
+    
+    setViewerDoc();
 
     getMedia().then(viewerMedia => dispatch(StreamActionCreator.setLocalStream(viewerMedia)));
 
@@ -44,8 +48,7 @@ export function Viewer () {
   if (remoteCameras) {
     for (const [id, camera] of Object.entries(remoteCameras)) {
       const cameraItem = (<li key={id}>
-        <CameraItem 
-          viewerId={viewerId!}
+        <CameraItem
           camera={camera}
         />
       </li>)
