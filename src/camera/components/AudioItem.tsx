@@ -68,7 +68,6 @@ export function AudioItem ({viewer}: RemoteViewer) {
       });
     }, (error) => console.log(error));
     
-    console.log("connection status", connection.connectionState);
     return () => {
       unsubscribeDoc();
       unsubscribeCandidatesCollection();

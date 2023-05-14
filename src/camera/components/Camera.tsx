@@ -69,7 +69,6 @@ export function Camera () {
     <div className="remote-media">
       <ul>
         {Object.entries(remoteCameras).map(value => {
-          console.log(value);
           if (value[0]) {
             return (<li key={value[0]}>
               <AudioItem viewer={value[1]}/>
