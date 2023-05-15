@@ -71,12 +71,6 @@ export function AudioItem ({viewer}: RemoteViewer) {
     return () => {
       unsubscribeDoc();
       unsubscribeCandidatesCollection();
-
-      for (const id in remoteStreams) {
-        dispatch(StreamActionCreator.removeRemoteStream(id));
-      }
-      dispatch(StreamActionCreator.clearRemoteCameras());
-
       connection.close();
     }
   }, [viewer.id]);

@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { StreamActionCreator, useStreamDispatchContext } from "../contexts/StreamContext";
 
 interface ControlsProps {
-  stream: MediaStream | null
+  stream: MediaStream | null | undefined
 }
 
 export function Controls ({stream}: ControlsProps) {

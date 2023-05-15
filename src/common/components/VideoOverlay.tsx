@@ -3,7 +3,7 @@ import { Controls } from "./Controls";
 import { CameraState } from "../contexts/StreamContext";
 
 interface VideoOverlayProps {
-  stream: MediaStream | null,
+  stream: MediaStream | null | undefined,
   camera: CameraState | null
 }
 
