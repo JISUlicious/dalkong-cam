@@ -1,5 +1,5 @@
 import "../../common/styles/Viewer.scss";
-import React, { ReactNode, useEffect } from "react";
+import React, { useEffect } from "react";
 import { CameraItem } from "./CameraItem";
 import { addItem, getItem} from "../../common/functions/storage";
 import { useAuthContext } from "../../common/contexts/AuthContext";
@@ -15,7 +15,7 @@ import { getDoc } from "firebase/firestore";
 
 export function Viewer () {
   const {user} = useAuthContext();
-  const {remoteCameras} = useStreamContext();
+  const {remoteCameras, remoteStreams} = useStreamContext();
 
   const dispatch = useStreamDispatchContext();
   
@@ -40,31 +40,25 @@ export function Viewer () {
     return () => {
       dispatch(StreamActionCreator.setLocalStream(null));
       dispatch(StreamActionCreator.clearRemoteCameras());
+
+      for (const id in remoteStreams) {
+        dispatch(StreamActionCreator.removeRemoteStream(id));
+      }
     }
   }, []);
 
-
-  const cameraItems: ReactNode[] = [];
-  if (remoteCameras) {
-    for (const [id, camera] of Object.entries(remoteCameras)) {
-      const cameraItem = (<li key={id}>
-        <CameraItem
-          camera={camera}
-        />
-      </li>)
-      cameraItems.push(cameraItem);
-    }
-  }
-
-
-  return <div className="viewer body-content">
+  return (<div className="viewer body-content">
     <h1>Viewer</h1>
     {user?.email}
     <div className="list-cameras-wrapper">
       list of camera
       <ul>
-        {cameraItems}
+        {Object.entries(remoteCameras).map(([id, camera]) => {
+          return (<li key={id}>
+            <CameraItem camera={camera} />
+          </li>);
+        })}
       </ul>
     </div>
-  </div>;
+  </div>);
 }

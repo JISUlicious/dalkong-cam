@@ -81,9 +81,7 @@ export function CameraItem({camera}: CameraItemProps) {
         }
       });
     }, (error) => console.log(error));
-
     
-    console.log("connection status", connection?.connectionState);
     return () => {
       unsubscribeViewerDoc();
       unsubscribeAnsweringCandidatesCollection();
@@ -93,11 +91,6 @@ export function CameraItem({camera}: CameraItemProps) {
       removeItems(key + "/offeringCandidates");
       removeItem(key);
       
-      for (const id in remoteStreams) {
-        dispatch(StreamActionCreator.removeRemoteStream(id));
-      }
-      dispatch(StreamActionCreator.clearRemoteCameras());
-
       connection.close();
     }
   }, [viewer]);

@@ -21,7 +21,7 @@ import { removeItem } from "../../common/functions/storage";
 export function Camera () {
   const {user} = useAuthContext();
   const {cameraId} = useParams();
-  const {camera, localStream, remoteCameras} = useStreamContext();
+  const {camera, localStream, remoteCameras, remoteStreams} = useStreamContext();
   const dispatch = useStreamDispatchContext();
   const savedTimes = ["2023-02-01 12:00:00", "2023-02-01 12:05:00", "2023-02-01 12:10:00", "a", "ddd", "aaa"];
 
@@ -58,6 +58,13 @@ export function Camera () {
       unsubscribeViewersCollection();
       removeItem(`users/${user?.uid}/cameras/${cameraId}`);
       dispatch(StreamActionCreator.clearRemoteCameras());
+
+
+      for (const id in remoteStreams) {
+        dispatch(StreamActionCreator.removeRemoteStream(id));
+      }
+      dispatch(StreamActionCreator.clearRemoteCameras());
+
     };
   }, []);
 
@@ -68,12 +75,10 @@ export function Camera () {
     </div>
     <div className="remote-media">
       <ul>
-        {Object.entries(remoteCameras).map(value => {
-          if (value[0]) {
-            return (<li key={value[0]}>
-              <AudioItem viewer={value[1]}/>
-            </li>)
-          }
+        {Object.entries(remoteCameras).map(([id, viewer]) => {
+            return (<li key={id}>
+              <AudioItem viewer={viewer} />
+            </li>);
         })}
       </ul>
     </div>
