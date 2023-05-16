@@ -1,42 +1,55 @@
 import "../../common/styles/Camera.scss";
+
+import React, { useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { collection, onSnapshot, query } from "firebase/firestore";
+
 import { VideoItem } from "../../viewer/components/VideoItem";
 import { Stream } from "../../common/components/Stream";
-import React, { useEffect } from "react";
-import { getMedia } from "../../common/functions/getMedia";
-import {
-  CameraState,
-  StreamActionCreator,
-  useStreamContext,
-  useStreamDispatchContext
-} from "../../common/contexts/StreamContext";
-import { useAuthContext } from "../../common/contexts/AuthContext";
 import { VideoOverlay } from "../../common/components/VideoOverlay";
-import { collection, onSnapshot, query } from "firebase/firestore";
-import { db } from "../../common/functions/firebaseInit";
 import { AudioItem } from "./AudioItem";
+
+import { useAuthContext } from "../../common/contexts/AuthContext";
+import { 
+  ConnectionActionCreator,
+  DeviceState, 
+  useConnectionContext, 
+  useConnectionDispatchContext
+} from "../../common/contexts/ConnectionContext";
+
+import { db } from "../../common/functions/firebaseInit";
 import { removeItem } from "../../common/functions/storage";
+import { getMedia } from "../../common/functions/getMedia";
+
 
 
 export function Camera () {
   const {user} = useAuthContext();
   const {cameraId} = useParams();
-  const {camera, localStream, remoteCameras, remoteStreams} = useStreamContext();
-  const dispatch = useStreamDispatchContext();
+  const {localDevice, localStream, remoteDevices, remoteStreams} = useConnectionContext();
+  const dispatch = useConnectionDispatchContext();
   const savedTimes = ["2023-02-01 12:00:00", "2023-02-01 12:05:00", "2023-02-01 12:10:00", "a", "ddd", "aaa"];
+
+
+  // get local stream
+  // listen for doc change
+  //  -> new doc => answer to the connection, store connection in context
+  // unsubscribe
+  // remove doc
+  // close connection
 
   useEffect(() => {
     async function getLocalStream() {
       if (!localStream || !localStream?.active) {
         const media = await getMedia();
-        dispatch?.(StreamActionCreator.setLocalStream(media));
+        dispatch?.(ConnectionActionCreator.setLocalStream(media));
       }
     }
 
     getLocalStream();
 
     return () => {
-      dispatch(StreamActionCreator.setLocalStream(null));
+      dispatch(ConnectionActionCreator.setLocalStream(null));
     };
   }, []);
   
@@ -49,7 +62,7 @@ export function Camera () {
     const unsubscribeViewersCollection = onSnapshot(viewersQuery, async (snapshot) => {
       snapshot.docChanges().forEach((change) => {
         if (change.type === "added" || change.type === "modified") {
-          dispatch(StreamActionCreator.addRemoteCamera(change.doc as CameraState));
+          dispatch(ConnectionActionCreator.addRemoteDevice(change.doc as DeviceState));
         }
       });
     }, (error) => console.log(error));
@@ -57,25 +70,25 @@ export function Camera () {
     return () => {
       unsubscribeViewersCollection();
       removeItem(`users/${user?.uid}/cameras/${cameraId}`);
-      dispatch(StreamActionCreator.clearRemoteCameras());
+      dispatch(ConnectionActionCreator.clearRemoteDevices());
 
 
       for (const id in remoteStreams) {
-        dispatch(StreamActionCreator.removeRemoteStream(id));
+        dispatch(ConnectionActionCreator.removeRemoteStream(id));
       }
-      dispatch(StreamActionCreator.clearRemoteCameras());
+      dispatch(ConnectionActionCreator.clearRemoteDevices());
 
     };
   }, []);
 
   return (<div className="camera body-content">
     <div className="video-wrapper">
-      <VideoOverlay stream={localStream} camera={camera}/>
+      <VideoOverlay stream={localStream} device={localDevice}/>
       <Stream stream={localStream} />
     </div>
     <div className="remote-media">
       <ul>
-        {Object.entries(remoteCameras).map(([id, viewer]) => {
+        {Object.entries(remoteDevices).map(([id, viewer]) => {
             return (<li key={id}>
               <AudioItem viewer={viewer} />
             </li>);

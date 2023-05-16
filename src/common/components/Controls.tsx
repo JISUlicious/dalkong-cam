@@ -1,6 +1,7 @@
-import { FiVolume2, FiVolumeX, FiMic, FiMicOff } from "react-icons/fi";
 import React, { useState } from "react";
-import { StreamActionCreator, useStreamDispatchContext } from "../contexts/StreamContext";
+import { FiVolume2, FiVolumeX, FiMic, FiMicOff } from "react-icons/fi";
+
+import { ConnectionActionCreator, useConnectionDispatchContext } from "../contexts/ConnectionContext";
 
 interface ControlsProps {
   stream: MediaStream | null | undefined
@@ -9,10 +10,10 @@ interface ControlsProps {
 export function Controls ({stream}: ControlsProps) {
   const [isSpeakerMuted, setIsSpeakerMuted] = useState(true);
   
-  const dispatch = useStreamDispatchContext();
+  const dispatch = useConnectionDispatchContext();
 
   function onToggleMic () {
-    dispatch?.(StreamActionCreator.toggleMuteLocalStream());
+    dispatch?.(ConnectionActionCreator.toggleMuteLocalStream());
   }
 
   function onToggleSpeaker () {
