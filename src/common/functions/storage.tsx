@@ -1,4 +1,3 @@
-import { db, storage } from "./firebaseInit";
 import { 
   doc,
   setDoc,
@@ -14,6 +13,7 @@ import {
   deleteField
 } from "firebase/firestore";
 
+import { db, storage } from "./firebaseInit";
 
 
 /**
@@ -75,7 +75,7 @@ export function removeItem(key: string) {
  */
 export function removeItems(key: string) {
   return getDocs(query(collection(db, key)))
-  .then(res => res.docs.forEach(doc => deleteDoc(doc.ref)));
+  .then(res => Promise.all(res.docs.map(doc => deleteDoc(doc.ref))));
 }
 
 export function removeField(key: string, field: string) {

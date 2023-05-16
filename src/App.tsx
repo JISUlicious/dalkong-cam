@@ -9,13 +9,13 @@ import { CreateCamera } from "./camera/components/CreateCamera";
 import { Viewer } from "./viewer/components/Viewer";
 import { AppLayout } from "./common/layouts/AppLayout";
 import { Camera } from "./camera/components/Camera";
-import { StreamProvider } from "./common/contexts/StreamContext";
+import { ConnectionProvider } from "./common/contexts/ConnectionContext";
 import { useAuthContext } from "./common/contexts/AuthContext";
 
 function App() {
   const {user} = useAuthContext();
   return (
-    <StreamProvider>
+    <ConnectionProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<AppLayout />}>
@@ -28,7 +28,7 @@ function App() {
           </Route>
         </Routes>
       </BrowserRouter>
-    </StreamProvider>
+    </ConnectionProvider>
   );
 }
 

@@ -1,8 +1,11 @@
 import "../../common/styles/App.scss";
 import "../../common/styles/Auth.scss";
+
 import React from "react";
-import { AuthForm } from "./AuthForm";
 import { Link, useNavigate } from "react-router-dom";
+
+import { AuthForm } from "./AuthForm";
+
 import { signInEmail } from "../../common/functions/auth";
 
 export function SignIn () {
