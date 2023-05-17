@@ -2,7 +2,7 @@ import { collection, doc, onSnapshot, query } from "firebase/firestore";
 import { DeviceState } from "../../common/contexts/ConnectionContext";
 import { db } from "../../common/functions/firebaseInit";
 
-export function useViewerSubscriptions(
+export function getViewerSubscriptions(
     cameraKey: string,
     localDevice: DeviceState,
     connection: RTCPeerConnection

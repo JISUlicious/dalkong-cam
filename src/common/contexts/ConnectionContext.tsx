@@ -34,6 +34,7 @@ type StreamActionType = "setLocalDevice"
   | "setLocalStream" 
   | "toggleMuteLocalStream" 
   | "addRemoteDevice" 
+  | "removeRemoteDevice"
   | "clearRemoteDevices"
   | "addRemoteStream"
   | "removeRemoteStream"
@@ -43,7 +44,7 @@ type StreamActionType = "setLocalDevice"
 export interface Action {
   type: StreamActionType,
   stream?: MediaStream | null,
-  device?: DeviceState,
+  device?: DeviceState | null,
   id?: string,
   connection?: RTCPeerConnection
 }
@@ -67,10 +68,11 @@ export function useConnectionDispatchContext () {
 }
 
 export const ConnectionActionCreator = {
-  setLocalDevice: (doc: DeviceState): Action => ({type: "setLocalDevice", device: doc}),
+  setLocalDevice: (doc: DeviceState | null): Action => ({type: "setLocalDevice", device: doc}),
   setLocalStream: (stream: MediaStream| null): Action => ({type: "setLocalStream", stream: stream}),
   toggleMuteLocalStream: (): Action => ({type: "toggleMuteLocalStream"}),
   addRemoteDevice: (doc: DeviceState): Action => ({type: "addRemoteDevice", device: doc}),
+  removeRemoteDevice: (id: string): Action => ({type: "removeRemoteDevice", id: id}),
   clearRemoteDevices: (): Action => ({type: "clearRemoteDevices"}),
   addRemoteStream: (id: string, stream: MediaStream): Action => ({type: "addRemoteStream", stream: stream, id: id}),
   removeRemoteStream: (id: string): Action => ({type: "removeRemoteStream", id: id}),
@@ -83,6 +85,8 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
     case "setLocalDevice": {
       if (action?.device) {
         return {...state, localDevice: action.device};
+      } else if (action.device === null) {
+        return {...state, localDevice: null};
       } else {
         throw new Error("'setLocalDevice' action requires 'device'");
       }
@@ -116,6 +120,14 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
         throw new Error("'addRemoteDevice' action requires 'device'");
       }
     }
+    case "removeRemoteDevice": {
+      if (action?.id && state.remoteDevices?.[action.id]) {
+        delete state.remoteDevices[action.id];
+        return {...state, remoteDevices: {...state.remoteDevices}};
+      } else {
+        throw new Error("'removeRemoteDevice' action requires 'id'");
+      }
+    }
     case "clearRemoteDevices": {
       return {...state, remoteDevices: {} as RemoteDevices};
     }
@@ -139,6 +151,27 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
         return {...state, remoteStreams: {...state.remoteStreams}};
       } else {
         throw new Error("'removeRemoteStream' action requires 'id'");
+      }
+    }
+    case "addConnection": {
+      if (action?.connection && action?.id) {
+        return {
+          ...state,
+          connections: {
+            ...state.connections,
+            [action.id]: action.connection
+          }
+        };
+      } else {
+        throw new Error("'addConnection' action requires 'connection' and 'id'");
+      }
+    }
+    case "removeConnection": {
+      if (action?.id && state.connections?.[action.id]) {
+        delete state.connections[action.id];
+        return {...state, connections: {...state.connections}};
+      } else {
+        throw new Error("'removeConnection' action requires 'id'");
       }
     }
     default: {

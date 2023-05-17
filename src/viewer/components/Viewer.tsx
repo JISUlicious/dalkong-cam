@@ -1,7 +1,7 @@
 import "../../common/styles/Viewer.scss";
 
-import React, { useEffect, useMemo, useState } from "react";
-import { Unsubscribe, collection, doc, getDoc, onSnapshot, query } from "firebase/firestore";
+import React, { useEffect, useState } from "react";
+import { Unsubscribe, collection, getDoc, onSnapshot, query } from "firebase/firestore";
 
 import { CameraItem } from "./CameraItem";
 
@@ -13,15 +13,14 @@ import {
   useConnectionDispatchContext
 } from "../../common/contexts/ConnectionContext";
 
-import { addItem, getItem, removeItem, updateItem} from "../../common/functions/storage";
+import { addItem, removeItem, removeItems} from "../../common/functions/storage";
 import { getMedia } from "../../common/functions/getMedia";
-import openRelayTurnServer from "../../turnSettings";
 import { db } from "../../common/functions/firebaseInit";
-import { unsubscribe } from "diagnostics_channel";
-import { useViewerConnection } from "../hooks/useViewerConnection";
-import { useViewerSubscriptions } from "../hooks/useViewerSubscriptions";
+import { getViewerSubscriptions } from "../functions/getViewerSubscriptions";
+import { setViewerConnection } from "../functions/setViewerConnection";
+import { clearConnectionById } from "../functions/clearConnectionById";
 
-interface Subscriptions {
+export interface Subscriptions {
   [id: string]: {
     unsubDescriptions: Unsubscribe,
     unsubICECandidates: Unsubscribe
@@ -30,35 +29,22 @@ interface Subscriptions {
 
 export function Viewer () {
 
-  // get local stream
-  // listen for doc change
-  //  -> new doc => answer to the connection, 
-  //                listen for viewer doc change, 
-  //                ice event, 
-  //                track event, 
-  //                store connection in context
-  // unsubscribe
-  // remove doc
-  // close connection
-
   const {user} = useAuthContext();
   
-  const {localStream, localDevice, remoteDevices, remoteStreams} = useConnectionContext();
+  const {localStream, localDevice, remoteDevices, connections} = useConnectionContext();
 
   const dispatch = useConnectionDispatchContext();
 
   const [subscriptions, setSubscriptions] = useState<Subscriptions>({});
 
   useEffect(() => {
-    console.log("setting local device");
-    if (localDevice) {
-      return ;
+    if (!localDevice) {
+      const key = `users/${user?.uid}/viewers`;
+      addItem(key, {}).then(async docRef => {
+        const viewerDoc = await getDoc(docRef);
+        dispatch(ConnectionActionCreator.setLocalDevice(viewerDoc as DeviceState));
+      });
     }
-    const key = `users/${user?.uid}/viewers`;
-    addItem(key, {}).then(async docRef => {
-      const viewerDoc = await getDoc(docRef);
-      dispatch(ConnectionActionCreator.setLocalDevice(viewerDoc as DeviceState));
-    });
   }, []);
 
   useEffect(() => {
@@ -66,39 +52,27 @@ export function Viewer () {
       getMedia().then(localMedia => {
         dispatch(ConnectionActionCreator.setLocalStream(localMedia));
       });
-      return dispatch(ConnectionActionCreator.setLocalStream(null));
     }
   }, []);
 
   useEffect(() => {
-    if (user && localDevice) {
+    if (user && localDevice && localStream) {
       const key = `users/${user?.uid}/cameras`;
       const camerasQuery = query(collection(db, key));
       const unsubscribeCamerasCollection = onSnapshot(camerasQuery, async snapshot => {
         snapshot.docChanges().map(async (change) => {
           if (change.type === "added") {
-            console.log("camera found");
-            const cameraDoc = change.doc;
+            const cameraDoc = change.doc as DeviceState;
             const cameraKey = `users/${user.uid}/cameras/${cameraDoc.id}`
-
-            dispatch(ConnectionActionCreator.addRemoteDevice(cameraDoc as DeviceState));
-  
-            const connection = useViewerConnection(user.uid, cameraDoc.id, localDevice.id, dispatch);
             
-            localStream?.getTracks().forEach(track => connection.addTrack(track, localStream));
-            const offer = await connection.createOffer();
-            await connection.setLocalDescription(offer).catch(error => console.log(error));
-        
-            const viewerWithOffer = {
-              offer: {
-                type: offer.type,
-                sdp: offer.sdp
-              }
-            };
-          
-            updateItem(cameraKey + "/viewers/" + localDevice.id, viewerWithOffer)
+            const connection = await setViewerConnection(cameraDoc, user.uid, dispatch, localDevice, localStream);
 
-            const [unsubscribeDescriptions, unsubscribeICECandidates] = useViewerSubscriptions(cameraKey, localDevice, connection);
+            const [unsubscribeDescriptions, unsubscribeICECandidates] = getViewerSubscriptions(
+              cameraKey, 
+              localDevice, 
+              connection
+              );
+
             setSubscriptions((prev) => ({
               ...prev,
               [cameraDoc.id]: {
@@ -106,30 +80,33 @@ export function Viewer () {
                 unsubICECandidates: unsubscribeICECandidates
               }
             }));
+            
+          } else if (change.type === "removed") {
+            console.log(subscriptions);
+            clearConnectionById(change.doc.id, subscriptions, setSubscriptions, dispatch);
           }
         });
       }, (error) => console.log(error));  
-      return (() => {
-        unsubscribeCamerasCollection();
-        Object.entries(subscriptions).map(([id, subscriptions]) => {
-          subscriptions.unsubDescriptions();
-          subscriptions.unsubICECandidates();
-        });
 
+      return (() => {
+        
         for (const id in remoteDevices) {
+          removeItems(`users/${user.uid}/cameras/${id}/viewers/${localDevice.id}/offeringCandidates`);
+          removeItems(`users/${user.uid}/cameras/${id}/viewers/${localDevice.id}/answeringCandidates`);
           removeItem(`users/${user.uid}/cameras/${id}/viewers/${localDevice.id}`);
         }
         removeItem(`users/${user.uid}/viewers/${localDevice.id}`);
-
-        dispatch(ConnectionActionCreator.setLocalStream(null));
-        dispatch(ConnectionActionCreator.clearRemoteDevices());
-
-        for (const id in remoteStreams) {
-          dispatch(ConnectionActionCreator.removeRemoteStream(id));
+        
+        unsubscribeCamerasCollection();
+        for (const id in connections) {
+          clearConnectionById(id, subscriptions, setSubscriptions, dispatch)
         }
+        
+        dispatch(ConnectionActionCreator.setLocalStream(null));
+        dispatch(ConnectionActionCreator.setLocalDevice(null));
       });
     }
-  }, [localDevice]);
+  }, [localDevice, localStream]);
 
   return (<div className="viewer body-content">
     <h1>Viewer</h1>
