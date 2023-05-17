@@ -3,7 +3,7 @@ import { Action, ConnectionActionCreator } from "../../common/contexts/Connectio
 import { addItem } from "../../common/functions/storage";
 import openRelayTurnServer from "../../turnSettings"
 
-export function useViewerConnection (
+export function useCameraConnection (
   uid: string,
   cameraId: string,
   viewerId: string,
@@ -15,7 +15,7 @@ export function useViewerConnection (
     if (!event.candidate) {
     return;
     }
-    const key = `users/${uid}/cameras/${cameraId}/viewers/${viewerId}/offeringCandidates`; 
+    const key = `users/${uid}/cameras/${cameraId}/viewers/${viewerId}/answeringCandidates`; 
     addItem(key, event.candidate.toJSON());
   };
   

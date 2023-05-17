@@ -29,7 +29,6 @@ export function CreateCamera () {
     };
     addItem(key, cameraInfo).then(docRef => {
       getDoc(docRef).then(doc => {
-        console.log(doc);
         dispatch(ConnectionActionCreator.setLocalDevice(doc as DeviceState));
         navigate(`/camera/${docRef.id}`);
       });

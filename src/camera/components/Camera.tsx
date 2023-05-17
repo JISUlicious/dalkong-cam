@@ -1,8 +1,8 @@
 import "../../common/styles/Camera.scss";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { collection, onSnapshot, query } from "firebase/firestore";
+import { collection, getDoc, onSnapshot, query } from "firebase/firestore";
 
 import { VideoItem } from "../../viewer/components/VideoItem";
 import { Stream } from "../../common/components/Stream";
@@ -18,19 +18,24 @@ import {
 } from "../../common/contexts/ConnectionContext";
 
 import { db } from "../../common/functions/firebaseInit";
-import { removeItem } from "../../common/functions/storage";
+import { addItem, removeItem, removeItems } from "../../common/functions/storage";
 import { getMedia } from "../../common/functions/getMedia";
+import { setCameraConnection } from "../functions/setCameraConnection";
+import { getCameraSubscriptions } from "../functions/getCameraSubscriptions";
+import { Subscriptions } from "../../viewer/components/Viewer";
+import { clearConnectionById } from "../../viewer/functions/clearConnectionById";
 
 
 
 export function Camera () {
   const {user} = useAuthContext();
   const {cameraId} = useParams();
-  const {localDevice, localStream, remoteDevices, remoteStreams} = useConnectionContext();
+  const {localDevice, localStream, remoteDevices, connections} = useConnectionContext();
   const dispatch = useConnectionDispatchContext();
+  const [subscriptions, setSubscriptions] = useState<Subscriptions>({});
+  
   const savedTimes = ["2023-02-01 12:00:00", "2023-02-01 12:05:00", "2023-02-01 12:10:00", "a", "ddd", "aaa"];
-
-
+  
   // get local stream
   // listen for doc change
   //  -> new doc => answer to the connection, store connection in context
@@ -39,47 +44,73 @@ export function Camera () {
   // close connection
 
   useEffect(() => {
-    async function getLocalStream() {
-      if (!localStream || !localStream?.active) {
-        const media = await getMedia();
-        dispatch?.(ConnectionActionCreator.setLocalStream(media));
-      }
+    if (!localDevice) {
+      const key = `users/${user?.uid}/viewers`;
+      addItem(key, {}).then(async docRef => {
+        const cameraDoc = await getDoc(docRef);
+        dispatch(ConnectionActionCreator.setLocalDevice(cameraDoc as DeviceState));
+      });
     }
+  }, []);
 
-    getLocalStream();
-
-    return () => {
-      dispatch(ConnectionActionCreator.setLocalStream(null));
-    };
+  useEffect(() => {
+    if (!localStream || !localStream?.active) {
+      getMedia().then(localMedia => {
+        dispatch(ConnectionActionCreator.setLocalStream(localMedia));
+      });
+    }
   }, []);
   
   useEffect(() => {
-    const key = `users/${user?.uid}/cameras/${cameraId}`;
-    const viewersQuery = query(
-      collection(db, key, "viewers")
-    );
+    if (user && localStream) {
+      const key = `users/${user.uid}/cameras/${cameraId}`;
+      const viewersQuery = query(
+        collection(db, key, "viewers")
+      );
 
-    const unsubscribeViewersCollection = onSnapshot(viewersQuery, async (snapshot) => {
-      snapshot.docChanges().forEach((change) => {
-        if (change.type === "added" || change.type === "modified") {
-          dispatch(ConnectionActionCreator.addRemoteDevice(change.doc as DeviceState));
+      const unsubscribeViewersCollection = onSnapshot(viewersQuery, async (snapshot) => {
+        snapshot.docChanges().forEach(async (change) => {
+          if (change.type === "added") {
+            console.log("added");
+            const viewerDoc = change.doc as DeviceState;
+            dispatch(ConnectionActionCreator.addRemoteDevice(viewerDoc));
+
+            const connection = await setCameraConnection(user?.uid, cameraId!, viewerDoc.id, dispatch);
+
+            const viewerKey = `users/${user.uid}/cameras/${cameraId}/viewers/${viewerDoc.id}`;
+            const [unsubscribeDescriptions, unsubscribeICECandidates] = getCameraSubscriptions(
+              viewerKey, 
+              localStream, 
+              connection
+              );
+
+            setSubscriptions((prev) => ({
+              ...prev,
+              [viewerDoc.id]: {
+                unsubDescriptions: unsubscribeDescriptions,
+                unsubICECandidates: unsubscribeICECandidates
+              }
+            }));
+          }
+        });
+      }, (error) => console.log(error));
+      return () => {
+        unsubscribeViewersCollection();
+        const cameraKey = `users/${user?.uid}/cameras/${cameraId}`;
+        for (const id in connections) {
+          removeItems(cameraKey + `/viewers/${id}/offeringCandidates`);
+          removeItems(cameraKey + `/viewers/${id}/answeringCandidates`);
+          removeItems(cameraKey + "/viewers");
+          clearConnectionById(id, subscriptions, setSubscriptions, dispatch);
         }
-      });
-    }, (error) => console.log(error));
 
-    return () => {
-      unsubscribeViewersCollection();
-      removeItem(`users/${user?.uid}/cameras/${cameraId}`);
-      dispatch(ConnectionActionCreator.clearRemoteDevices());
+        removeItem(cameraKey);
 
-
-      for (const id in remoteStreams) {
-        dispatch(ConnectionActionCreator.removeRemoteStream(id));
-      }
-      dispatch(ConnectionActionCreator.clearRemoteDevices());
-
-    };
-  }, []);
+        dispatch(ConnectionActionCreator.setLocalDevice(null));
+        dispatch(ConnectionActionCreator.setLocalStream(null));
+      };
+    }
+  }, [localDevice, localStream]);
 
   return (<div className="camera body-content">
     <div className="video-wrapper">
