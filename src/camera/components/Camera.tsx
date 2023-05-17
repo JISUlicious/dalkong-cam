@@ -35,13 +35,6 @@ export function Camera () {
   const [subscriptions, setSubscriptions] = useState<Subscriptions>({});
   
   const savedTimes = ["2023-02-01 12:00:00", "2023-02-01 12:05:00", "2023-02-01 12:10:00", "a", "ddd", "aaa"];
-  
-  // get local stream
-  // listen for doc change
-  //  -> new doc => answer to the connection, store connection in context
-  // unsubscribe
-  // remove doc
-  // close connection
 
   useEffect(() => {
     if (!localDevice) {
