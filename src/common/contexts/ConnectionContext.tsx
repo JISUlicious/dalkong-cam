@@ -120,11 +120,13 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
       }
     }
     case "removeRemoteDevice": {
-      if (action?.id && state.remoteDevices?.[action.id]) {
+      if (!action?.id) {
+        throw new Error("'removeRemoteDevice' action requires 'id'");
+      } else if (action?.id && state.remoteDevices?.[action.id]) {
         delete state.remoteDevices[action.id];
         return {...state, remoteDevices: {...state.remoteDevices}};
       } else {
-        throw new Error("'removeRemoteDevice' action requires 'id'");
+        return {...state};
       }
     }
     case "clearRemoteDevices": {
@@ -144,12 +146,14 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
       }
     }
     case "removeRemoteStream": {
-      if (action?.id && state.remoteStreams?.[action.id]) {
+      if (!action?.id) {
+        throw new Error("'removeRemoteStream' action requires 'id'");
+      } else if (state.remoteStreams?.[action.id]) {
         state.remoteStreams?.[action.id].getTracks().forEach(track => track.stop());
         delete state.remoteStreams[action.id];
         return {...state, remoteStreams: {...state.remoteStreams}};
       } else {
-        throw new Error("'removeRemoteStream' action requires 'id'");
+        return {...state};
       }
     }
     case "addConnection": {
