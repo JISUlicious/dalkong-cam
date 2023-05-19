@@ -13,7 +13,7 @@ export function Controls ({stream}: ControlsProps) {
   const dispatch = useConnectionDispatchContext();
 
   function onToggleMic () {
-    dispatch?.(ConnectionActionCreator.toggleMuteLocalStream());
+    dispatch?.(ConnectionActionCreator.toggleMuteMic());
   }
 
   function onToggleSpeaker () {
@@ -25,12 +25,6 @@ export function Controls ({stream}: ControlsProps) {
       {stream?.getAudioTracks()[0].enabled
         ? <FiMic className="icon mic" />
         : <FiMicOff className="icon mic" />
-      }
-    </button>
-    <button className="icon-button" onClick={onToggleSpeaker} >
-      {isSpeakerMuted
-        ? <FiVolumeX className="icon speaker"  />
-        : <FiVolume2 className="icon speaker" />
       }
     </button>
     <select className="camera-select">

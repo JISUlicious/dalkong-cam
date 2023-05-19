@@ -29,7 +29,6 @@ import { clearConnectionById } from "../../viewer/functions/clearConnectionById"
 
 export function Camera () {
   const {user} = useAuthContext();
-  const {cameraId} = useParams();
   const {localDevice, localStream, remoteDevices, connections} = useConnectionContext();
   const dispatch = useConnectionDispatchContext();
   const [subscriptions, setSubscriptions] = useState<Subscriptions>({});
@@ -55,8 +54,8 @@ export function Camera () {
   }, []);
   
   useEffect(() => {
-    if (user && localStream) {
-      const key = `users/${user.uid}/cameras/${cameraId}`;
+    if (user && localDevice && localStream) {
+      const key = `users/${user.uid}/cameras/${localDevice.id}`;
       const viewersQuery = query(
         collection(db, key, "viewers")
       );
@@ -67,9 +66,9 @@ export function Camera () {
             const viewerDoc = change.doc as DeviceState;
             dispatch(ConnectionActionCreator.addRemoteDevice(viewerDoc));
 
-            const connection = await setCameraConnection(user?.uid, cameraId!, viewerDoc.id, dispatch);
+            const connection = await setCameraConnection(user?.uid, localDevice.id, viewerDoc.id, dispatch);
 
-            const viewerKey = `users/${user.uid}/cameras/${cameraId}/viewers/${viewerDoc.id}`;
+            const viewerKey = `users/${user.uid}/cameras/${localDevice.id}/viewers/${viewerDoc.id}`;
             const [unsubscribeDescriptions, unsubscribeICECandidates] = getCameraSubscriptions(
               viewerKey, 
               localStream, 
@@ -88,7 +87,7 @@ export function Camera () {
       }, (error) => console.log(error));
       return () => {
         unsubscribeViewersCollection();
-        const cameraKey = `users/${user?.uid}/cameras/${cameraId}`;
+        const cameraKey = `users/${user?.uid}/cameras/${localDevice.id}`;
         for (const id in connections) {
           removeItems(cameraKey + `/viewers/${id}/offeringCandidates`);
           removeItems(cameraKey + `/viewers/${id}/answeringCandidates`);
@@ -107,7 +106,7 @@ export function Camera () {
   return (<div className="camera body-content">
     <div className="video-wrapper">
       <VideoOverlay stream={localStream} device={localDevice}/>
-      <Stream stream={localStream} />
+      <Stream stream={localStream} muted={true} />
     </div>
     <div className="remote-media">
       <ul>

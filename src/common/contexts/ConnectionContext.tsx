@@ -1,4 +1,3 @@
-import { Unsubscribe } from "firebase/auth";
 import { DocumentSnapshot } from "firebase/firestore";
 import React, { createContext, Dispatch, PropsWithChildren, useContext, useReducer } from "react";
 
@@ -32,7 +31,7 @@ interface ConnectionState {
 
 type StreamActionType = "setLocalDevice"
   | "setLocalStream" 
-  | "toggleMuteLocalStream" 
+  | "toggleMuteMic" 
   | "addRemoteDevice" 
   | "removeRemoteDevice"
   | "clearRemoteDevices"
@@ -70,7 +69,7 @@ export function useConnectionDispatchContext () {
 export const ConnectionActionCreator = {
   setLocalDevice: (doc: DeviceState | null): Action => ({type: "setLocalDevice", device: doc}),
   setLocalStream: (stream: MediaStream| null): Action => ({type: "setLocalStream", stream: stream}),
-  toggleMuteLocalStream: (): Action => ({type: "toggleMuteLocalStream"}),
+  toggleMuteMic: (): Action => ({type: "toggleMuteMic"}),
   addRemoteDevice: (doc: DeviceState): Action => ({type: "addRemoteDevice", device: doc}),
   removeRemoteDevice: (id: string): Action => ({type: "removeRemoteDevice", id: id}),
   clearRemoteDevices: (): Action => ({type: "clearRemoteDevices"}),
@@ -101,7 +100,7 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
         throw new Error("'setLocalStream' action requires 'stream'");
       }
     }
-    case "toggleMuteLocalStream": {
+    case "toggleMuteMic": {
       if (state.localStream) {
         state.localStream?.getAudioTracks().forEach(track => track.enabled = !track.enabled);
       } 
@@ -155,6 +154,7 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
     }
     case "addConnection": {
       if (action?.connection && action?.id) {
+        console.log("new connection", action?.connection);
         return {
           ...state,
           connections: {
