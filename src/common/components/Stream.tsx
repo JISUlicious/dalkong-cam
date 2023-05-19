@@ -1,10 +1,11 @@
 import React, { useEffect, useRef } from "react";
 
 interface RTCStream {
-  stream: MediaStream | null | undefined
+  stream: MediaStream | null | undefined,
+  muted?: boolean
 }
 
-export function Stream({stream}: RTCStream) {
+export function Stream({stream, muted}: RTCStream) {
   const streamRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     if (!streamRef.current || !stream)
@@ -12,6 +13,6 @@ export function Stream({stream}: RTCStream) {
     streamRef.current.srcObject = stream;
   }, [stream]);
 
-  return (<video className="stream" ref={streamRef} autoPlay controls />);
+  return (<video className="stream" ref={streamRef} autoPlay controls muted={muted}/>);
 }
 
