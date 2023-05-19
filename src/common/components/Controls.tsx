@@ -17,8 +17,7 @@ export function Controls ({stream}: ControlsProps) {
   }
 
   function onToggleSpeaker () {
-    // remoteStreams?.forEach(stream => stream.getAudioTracks().forEach(track => track.enabled = !isSpeakerMuted));
-    setIsSpeakerMuted(!isSpeakerMuted);
+    stream?.getAudioTracks().forEach(track => track.enabled = !track.enabled);
   }
 
   return <div className="controls">
