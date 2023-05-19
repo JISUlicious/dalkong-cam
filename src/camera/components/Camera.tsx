@@ -64,7 +64,6 @@ export function Camera () {
       const unsubscribeViewersCollection = onSnapshot(viewersQuery, async (snapshot) => {
         snapshot.docChanges().forEach(async (change) => {
           if (change.type === "added") {
-            console.log("added");
             const viewerDoc = change.doc as DeviceState;
             dispatch(ConnectionActionCreator.addRemoteDevice(viewerDoc));
 
