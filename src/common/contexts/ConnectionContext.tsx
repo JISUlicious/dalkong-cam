@@ -21,7 +21,7 @@ interface Connections {
   [id: string]: RTCPeerConnection
 }
 
-interface ConnectionState {
+export interface ConnectionState {
   localDevice: DeviceState | null,
   localStream: MediaStream | null,
   remoteStreams: RemoteStreams | null,
@@ -29,24 +29,15 @@ interface ConnectionState {
   connections: Connections,
 }
 
-type StreamActionType = "setLocalDevice"
-  | "setLocalStream" 
-  | "toggleMuteMic" 
-  | "addRemoteDevice" 
-  | "removeRemoteDevice"
-  | "clearRemoteDevices"
-  | "addRemoteStream"
-  | "removeRemoteStream"
-  | "addConnection"
-  | "removeConnection";
-
-export interface Action {
-  type: StreamActionType,
-  stream?: MediaStream | null,
-  device?: DeviceState | null,
-  id?: string,
-  connection?: RTCPeerConnection
-}
+export type Action = {type: "setLocalDevice", device: DeviceState | null}
+  | {type: "setLocalStream", stream: MediaStream | null}
+  | {type: "addRemoteDevice", device: DeviceState}
+  | {type: "removeRemoteDevice", id: string}
+  | {type: "clearRemoteDevices"}
+  | {type: "addRemoteStream", stream: MediaStream, id: string}
+  | {type: "removeRemoteStream", id: string}
+  | {type: "addConnection", id: string, connection: RTCPeerConnection}
+  | {type: "removeConnection", id: string}
 
 const initialState = {
   localDevice: null,
@@ -69,7 +60,6 @@ export function useConnectionDispatchContext () {
 export const ConnectionActionCreator = {
   setLocalDevice: (doc: DeviceState | null): Action => ({type: "setLocalDevice", device: doc}),
   setLocalStream: (stream: MediaStream| null): Action => ({type: "setLocalStream", stream: stream}),
-  toggleMuteMic: (): Action => ({type: "toggleMuteMic"}),
   addRemoteDevice: (doc: DeviceState): Action => ({type: "addRemoteDevice", device: doc}),
   removeRemoteDevice: (id: string): Action => ({type: "removeRemoteDevice", id: id}),
   clearRemoteDevices: (): Action => ({type: "clearRemoteDevices"}),
@@ -82,104 +72,71 @@ export const ConnectionActionCreator = {
 export function connectionReducer (state: ConnectionState, action: Action): ConnectionState {
   switch (action.type) {
     case "setLocalDevice": {
-      if (action?.device) {
-        return {...state, localDevice: action.device};
-      } else if (action.device === null) {
-        return {...state, localDevice: null};
-      } else {
-        throw new Error("'setLocalDevice' action requires 'device'");
-      }
+      return {...state, localDevice: action.device};
     }
     case "setLocalStream": {
-      if (action?.stream) {
-        return {...state, localStream: action.stream};
-      } else if (action.stream === null) {
-        state.localStream?.getTracks().forEach(track => track.stop());
-        return {...state, localStream: null};
-      } else {
-        throw new Error("'setLocalStream' action requires 'stream'");
-      }
-    }
-    case "toggleMuteMic": {
-      if (state.localStream) {
-        state.localStream?.getAudioTracks().forEach(track => track.enabled = !track.enabled);
-      } 
-      return {...state};
+      return {...state, localStream: action.stream};
     }
     case "addRemoteDevice": {
-      if (action?.device) {
-        return {
-          ...state,
-          remoteDevices: {
-            ...state.remoteDevices,
-            [action.device.id]: action.device
-          }
-        };
-      } else {
-        throw new Error("'addRemoteDevice' action requires 'device'");
-      }
+      return {
+        ...state,
+        remoteDevices: {
+          ...state.remoteDevices,
+          [action.device.id]: action.device
+        }
+      };
     }
     case "removeRemoteDevice": {
-      if (!action?.id) {
-        throw new Error("'removeRemoteDevice' action requires 'id'");
-      } else if (action?.id && state.remoteDevices?.[action.id]) {
-        delete state.remoteDevices[action.id];
-        return {...state, remoteDevices: {...state.remoteDevices}};
+      if (state.remoteDevices?.[action.id]) {
+        const remoteDevices = {...state.remoteDevices};
+        delete remoteDevices[action.id];
+        return {...state, remoteDevices: {...remoteDevices}};
       } else {
-        return {...state};
+        console.log(`Remote device with id ${action.id} does not exist`);
+        return state;
       }
     }
     case "clearRemoteDevices": {
       return {...state, remoteDevices: {} as RemoteDevices};
     }
     case "addRemoteStream": {
-      if (action?.stream) {
-        return {
-          ...state,
-          remoteStreams: {
-            ...state.remoteStreams,
-            [action.id as string]: action.stream
-          }
-        };
-      } else {
-        throw new Error("'addRemoteStream' action requires 'id' and 'stream");
-      }
+      return {
+        ...state,
+        remoteStreams: {
+          ...state.remoteStreams,
+          [action.id as string]: action.stream
+        }
+      };
     }
     case "removeRemoteStream": {
-      if (!action?.id) {
-        throw new Error("'removeRemoteStream' action requires 'id'");
-      } else if (state.remoteStreams?.[action.id]) {
-        state.remoteStreams?.[action.id].getTracks().forEach(track => track.stop());
-        delete state.remoteStreams[action.id];
-        return {...state, remoteStreams: {...state.remoteStreams}};
+      if (state.remoteStreams?.[action.id]) {
+        const remoteStreams = {...state.remoteStreams};
+        delete remoteStreams[action.id];
+        return {...state, remoteStreams: {...remoteStreams}};
       } else {
-        return {...state};
+        console.log(`Remote stream with id ${action.id} does not exist`);
+        return state;
       }
     }
     case "addConnection": {
-      if (action?.connection && action?.id) {
-        console.log("new connection", action?.connection);
-        return {
-          ...state,
-          connections: {
-            ...state.connections,
-            [action.id]: action.connection
-          }
-        };
-      } else {
-        throw new Error("'addConnection' action requires 'connection' and 'id'");
-      }
+      console.log("new connection", action?.connection);
+      return {
+        ...state,
+        connections: {
+          ...state.connections,
+          [action.id]: action.connection
+        }
+      };
     }
     case "removeConnection": {
-      if (action?.id && state.connections?.[action.id]) {
-        delete state.connections[action.id];
-        return {...state, connections: {...state.connections}};
+      if (state.connections?.[action.id]) {
+        const connections = {...state.connections};
+        delete connections[action.id];
+        return {...state, connections: {...connections}};
       } else {
-        throw new Error("'removeConnection' action requires 'id'");
+        console.log(`Connection with id ${action.id} does not exist`);
+        return state;
       }
-    }
-    default: {
-      throw new Error("Invalid action type:" + action.type);
     }
   }
 }
