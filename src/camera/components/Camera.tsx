@@ -1,8 +1,7 @@
 import "../../common/styles/Camera.scss";
 
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { collection, getDoc, onSnapshot, query } from "firebase/firestore";
+import React, { useEffect } from "react";
+import { collection, doc, getDoc, onSnapshot, query } from "firebase/firestore";
 
 import { VideoItem } from "../../viewer/components/VideoItem";
 import { Stream } from "../../common/components/Stream";
@@ -18,35 +17,84 @@ import {
 } from "../../common/contexts/ConnectionContext";
 
 import { db } from "../../common/functions/firebaseInit";
-import { addItem, removeItem, removeItems } from "../../common/functions/storage";
+import { addItem, removeItem, updateItem } from "../../common/functions/storage";
 import { getMedia } from "../../common/functions/getMedia";
-import { setCameraConnection } from "../functions/setCameraConnection";
-import { getCameraSubscriptions } from "../functions/getCameraSubscriptions";
-import { Subscriptions } from "../../viewer/components/Viewer";
-import { clearConnectionById } from "../../viewer/functions/clearConnectionById";
+import openRelayTurnServer from "../../turnSettings";
 
+function CameraConnectionController ({remoteDevice}: {remoteDevice: DeviceState}) {
+  const {user} = useAuthContext();
+  const {localDevice, localStream} = useConnectionContext();
+  const dispatch = useConnectionDispatchContext();
 
+  useEffect(() => {
+    const connection = new RTCPeerConnection(openRelayTurnServer);
+    const viewerKey = `users/${user!.uid}/cameras/${localDevice!.id}/viewers/${remoteDevice.id}`;
+    
+    connection.onicecandidate = (event) => {
+      if (!event.candidate) {
+        return;
+      }
+      const key = `${viewerKey}/answeringCandidates`; 
+      addItem(key, event.candidate.toJSON());
+    };
+
+    connection.ontrack = (event) => {
+      const [remoteStream] = event.streams;
+      dispatch(ConnectionActionCreator.addRemoteStream(remoteDevice.id, remoteStream));
+    };
+
+    const unsubscribeDescriptions = onSnapshot(doc(db, viewerKey), async (snapshot) => {
+      const data = snapshot.data();
+      if (!connection.currentRemoteDescription && data?.offer) {
+        const offer = data.offer; 
+        await connection.setRemoteDescription(offer);
+        localStream?.getTracks().forEach(track => connection.addTrack(track, localStream));
+        
+        const answer = await connection.createAnswer();
+        await connection.setLocalDescription(answer);
+        const viewerWithAnswer = {
+          answer: {
+            type: answer.type,
+            sdp: answer.sdp
+          }
+        };
+        updateItem(viewerKey, viewerWithAnswer);
+      }
+    }, (error) => console.log(error));
+    
+    const q = query(
+      collection(db, viewerKey, "offeringCandidates")
+    );
+    const unsubscribeICECandidates = onSnapshot(q, async (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          const data = change.doc.data();
+          connection.addIceCandidate(new RTCIceCandidate(data));
+        }
+      });
+    }, (error) => console.log(error));
+
+    return () => {
+      unsubscribeDescriptions();
+      unsubscribeICECandidates();
+      
+      dispatch(ConnectionActionCreator.removeRemoteStream(remoteDevice.id));
+
+      connection.close();
+    };
+  }, [remoteDevice]);
+  return null;
+}
 
 export function Camera () {
   const {user} = useAuthContext();
-  const {localDevice, localStream, remoteDevices, connections} = useConnectionContext();
+  const {localDevice, localStream, remoteDevices} = useConnectionContext();
   const dispatch = useConnectionDispatchContext();
-  const [subscriptions, setSubscriptions] = useState<Subscriptions>({});
   
   const savedTimes = ["2023-02-01 12:00:00", "2023-02-01 12:05:00", "2023-02-01 12:10:00", "a", "ddd", "aaa", "g"];
 
   useEffect(() => {
-    if (!localDevice) {
-      const key = `users/${user?.uid}/viewers`;
-      addItem(key, {}).then(async docRef => {
-        const cameraDoc = await getDoc(docRef);
-        dispatch(ConnectionActionCreator.setLocalDevice(cameraDoc as DeviceState));
-      });
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!localStream || !localStream?.active) {
+    if (!localStream?.active) {
       getMedia().then(localMedia => {
         dispatch(ConnectionActionCreator.setLocalStream(localMedia));
       });
@@ -63,45 +111,24 @@ export function Camera () {
       const unsubscribeViewersCollection = onSnapshot(viewersQuery, async (snapshot) => {
         snapshot.docChanges().forEach(async (change) => {
           if (change.type === "added") {
-            const viewerDoc = change.doc as DeviceState;
-            dispatch(ConnectionActionCreator.addRemoteDevice(viewerDoc));
-
-            const connection = await setCameraConnection(user?.uid, localDevice.id, viewerDoc.id, dispatch);
-
-            const viewerKey = `users/${user.uid}/cameras/${localDevice.id}/viewers/${viewerDoc.id}`;
-            const [unsubscribeDescriptions, unsubscribeICECandidates] = getCameraSubscriptions(
-              viewerKey, 
-              localStream, 
-              connection
-              );
-
-            setSubscriptions((prev) => ({
-              ...prev,
-              [viewerDoc.id]: {
-                unsubDescriptions: unsubscribeDescriptions,
-                unsubICECandidates: unsubscribeICECandidates
-              }
-            }));
+            dispatch(ConnectionActionCreator.addRemoteDevice(change.doc as DeviceState));
+          } else if (change.type === "removed") {
+            dispatch(ConnectionActionCreator.removeRemoteDevice(change.doc.id));
           }
         });
       }, (error) => console.log(error));
       return () => {
         unsubscribeViewersCollection();
         const cameraKey = `users/${user?.uid}/cameras/${localDevice.id}`;
-        for (const id in connections) {
-          removeItems(cameraKey + `/viewers/${id}/offeringCandidates`);
-          removeItems(cameraKey + `/viewers/${id}/answeringCandidates`);
-          removeItems(cameraKey + "/viewers");
-          clearConnectionById(id, subscriptions, setSubscriptions, dispatch);
-        }
 
         removeItem(cameraKey);
 
-        dispatch(ConnectionActionCreator.setLocalDevice(null));
+        localStream.getTracks().forEach(track => track.stop());
         dispatch(ConnectionActionCreator.setLocalStream(null));
+        dispatch(ConnectionActionCreator.setLocalDevice(null));
       };
     }
-  }, [localDevice, localStream]);
+  }, [user, localDevice, localStream]);
 
   return (<div className="camera body-content">
     <div className="video-wrapper">
@@ -127,5 +154,10 @@ export function Camera () {
         })}
       </ul>
     </div>
+    {
+      Object.entries(remoteDevices).map(([id, camera]) => {
+        return (<CameraConnectionController remoteDevice={camera} key={id} />);
+      })
+    }
   </div>);
 }
