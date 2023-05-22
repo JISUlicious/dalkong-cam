@@ -1,19 +1,17 @@
-import React, { useState } from "react";
+import React from "react";
 import { FiVolume2, FiVolumeX, FiMic, FiMicOff } from "react-icons/fi";
 
-import { ConnectionActionCreator, useConnectionDispatchContext } from "../contexts/ConnectionContext";
+import { useConnectionContext } from "../contexts/ConnectionContext";
 
 interface ControlsProps {
   stream: MediaStream | null | undefined
 }
 
 export function Controls ({stream}: ControlsProps) {
-  const [isSpeakerMuted, setIsSpeakerMuted] = useState(true);
-  
-  const dispatch = useConnectionDispatchContext();
+  const {localStream} = useConnectionContext();
 
   function onToggleMic () {
-    dispatch?.(ConnectionActionCreator.toggleMuteMic());
+    localStream?.getAudioTracks().forEach(track => track.enabled = !track.enabled);
   }
 
   function onToggleSpeaker () {
@@ -22,9 +20,15 @@ export function Controls ({stream}: ControlsProps) {
 
   return <div className="controls">
     <button className="icon-button" onClick={onToggleMic}>
-      {stream?.getAudioTracks()[0].enabled
+      {localStream?.getAudioTracks()[0].enabled
         ? <FiMic className="icon mic" />
         : <FiMicOff className="icon mic" />
+      }
+    </button>
+    <button className="icon-button" onClick={onToggleSpeaker}>
+      {stream?.getAudioTracks()[0].enabled
+        ? <FiVolume2 className="icon speaker" />
+        : <FiVolumeX className="icon speaker" />
       }
     </button>
     <select className="camera-select">
