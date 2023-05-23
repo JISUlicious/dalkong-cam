@@ -28,7 +28,7 @@ export async function setViewerConnection (
     dispatch(ConnectionActionCreator.addRemoteStream(cameraDoc.id, remoteStream));
   };
   
-  dispatch(ConnectionActionCreator.addConnection(cameraDoc.id, connection));
+  // dispatch(ConnectionActionCreator.addConnection(cameraDoc.id, connection));
 
   localStream.getTracks().forEach(track => connection.addTrack(track, localStream));
   const offer = await connection.createOffer();

@@ -38,17 +38,15 @@ export function Viewer () {
   const [subscriptions, setSubscriptions] = useState<Subscriptions>({});
 
   useEffect(() => {
-    if (!localDevice) {
-      const key = `users/${user?.uid}/viewers`;
-      addItem(key, {}).then(async docRef => {
-        const viewerDoc = await getDoc(docRef);
-        dispatch(ConnectionActionCreator.setLocalDevice(viewerDoc as DeviceState));
-      });
-    }
+    const key = `users/${user?.uid}/viewers`;
+    addItem(key, {}).then(async docRef => {
+      const viewerDoc = await getDoc(docRef);
+      dispatch(ConnectionActionCreator.setLocalDevice(viewerDoc as DeviceState));
+    });
   }, []);
 
   useEffect(() => {
-    if (!localStream || !localStream?.active) {
+    if (!localStream?.active) {
       getMedia().then(localMedia => {
         dispatch(ConnectionActionCreator.setLocalStream(localMedia));
       });
@@ -83,7 +81,7 @@ export function Viewer () {
             
           } else if (change.type === "removed") {
             console.log(subscriptions);
-            clearConnectionById(change.doc.id, subscriptions, setSubscriptions, dispatch);
+            // clearConnectionById(change.doc.id, subscriptions, setSubscriptions, dispatch);
           }
         });
       }, (error) => console.log(error));  
@@ -98,9 +96,9 @@ export function Viewer () {
         removeItem(`users/${user.uid}/viewers/${localDevice.id}`);
         
         unsubscribeCamerasCollection();
-        for (const id in connections) {
-          clearConnectionById(id, subscriptions, setSubscriptions, dispatch)
-        }
+        // for (const id in connections) {
+        //   clearConnectionById(id, subscriptions, setSubscriptions, dispatch)
+        // }
         
         dispatch(ConnectionActionCreator.setLocalStream(null));
         dispatch(ConnectionActionCreator.setLocalDevice(null));
