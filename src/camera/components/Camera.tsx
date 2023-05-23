@@ -36,17 +36,15 @@ export function Camera () {
   const savedTimes = ["2023-02-01 12:00:00", "2023-02-01 12:05:00", "2023-02-01 12:10:00", "a", "ddd", "aaa", "g"];
 
   useEffect(() => {
-    if (!localDevice) {
-      const key = `users/${user?.uid}/viewers`;
-      addItem(key, {}).then(async docRef => {
-        const cameraDoc = await getDoc(docRef);
-        dispatch(ConnectionActionCreator.setLocalDevice(cameraDoc as DeviceState));
-      });
-    }
+    const key = `users/${user?.uid}/viewers`;
+    addItem(key, {}).then(async docRef => {
+      const cameraDoc = await getDoc(docRef);
+      dispatch(ConnectionActionCreator.setLocalDevice(cameraDoc as DeviceState));
+    });
   }, []);
 
   useEffect(() => {
-    if (!localStream || !localStream?.active) {
+    if (!localStream?.active) {
       getMedia().then(localMedia => {
         dispatch(ConnectionActionCreator.setLocalStream(localMedia));
       });
@@ -64,6 +62,7 @@ export function Camera () {
         snapshot.docChanges().forEach(async (change) => {
           if (change.type === "added") {
             const viewerDoc = change.doc as DeviceState;
+            console.log(viewerDoc);
             dispatch(ConnectionActionCreator.addRemoteDevice(viewerDoc));
 
             const connection = await setCameraConnection(user?.uid, localDevice.id, viewerDoc.id, dispatch);

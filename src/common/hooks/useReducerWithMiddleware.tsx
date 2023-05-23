@@ -1,28 +1,47 @@
-import { useReducer } from "react";
-import { Action, ConnectionState } from "../contexts/ConnectionContext";
+import { useMemo, useRef, useState } from "react";
 
+export type Dispatch = (action: any) => any
 
-// TODO: camera일떄의 작동과 viewer일때의 작동을 어떻게 구분할지?
+export type MiddlewareAPI<A> = { getState: () => A; dispatch: Dispatch }
 
-export function useReducerWithMiddleware(
-  reducer: (state: ConnectionState, action: Action) => ConnectionState,
-  initialState: ConnectionState,
-  middlewareFn: (state: ConnectionState, action: Action) => void
-) {
-  const [state, dispatch] = useReducer(reducer, initialState);
+export type Middleware<A> = (api: MiddlewareAPI<A>) => (next: Dispatch) => Dispatch
 
-  function dispatchWithMiddleware(action: Action) {
-    middlewareFn(state, action);
-    dispatch(action);
-  }
+export const useMiddlewareReducer = <A, B>(
+  reducer: (state: A, action: B) => A,
+  initialState: A,
+  middlewares: Middleware<A>[] = []
+): [A, Dispatch] => {
+  const [state, setState] = useState(initialState);
+  const stateRef = useRef(state);
+  
+  const dispatch = useMemo(() => {
+    let dispatch: Dispatch = () => {
+      throw new Error(
+        `Dispatching while constructing your middleware is not allowed. ` +
+          `Other middleware would not be applied to this dispatch.`
+      )
+    };
 
-  return [state, dispatchWithMiddleware];
+    const middlewareAPI = {
+      getState: () => stateRef.current,
+      dispatch: (action: B) => dispatch(action)
+    };
+
+    const localDispatch = (action: B) => {
+      stateRef.current = reducer(stateRef.current, action);
+      setState(stateRef.current);
+    };
+
+    dispatch = middlewares
+      .map(middleware => middleware(middlewareAPI))
+      .reduceRight((acc, middleware) => middleware(acc), localDispatch);
+
+    return dispatch;
+  }, []);
+
+  return [state, dispatch];
 }
 
-export function connectionReducerMiddleware (state: ConnectionState, action: Action) {
-  switch (action.type) {
-    case "addRemoteDevice": {
-      // 
-    }
-  }
-}
+export default useMiddlewareReducer;
+
+

@@ -1,5 +1,7 @@
 import { DocumentSnapshot } from "firebase/firestore";
 import React, { createContext, Dispatch, PropsWithChildren, useContext, useReducer } from "react";
+import useMiddlewareReducer, { Middleware, MiddlewareAPI } from "../hooks/useReducerWithMiddleware";
+import openRelayTurnServer from "../../turnSettings";
 
 export interface DeviceDoc {
   deviceName: string,
@@ -142,10 +144,32 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
 }
 
 export function ConnectionProvider ({children}: PropsWithChildren) {
-  const [state, dispatch] = useReducer(connectionReducer, initialState);
+  // const [state, dispatch] = useReducer(connectionReducer, initialState);
+  
+  const [state, dispatch] = useMiddlewareReducer(connectionReducer, initialState, [setLocalStream]);
   return (<ConnectionContext.Provider value={state}>
     <ConnectionDispatchContext.Provider value={dispatch}>
       {children}
     </ConnectionDispatchContext.Provider>
   </ConnectionContext.Provider>)
 }
+
+const setLocalStream = (api: MiddlewareAPI<ConnectionState>) =>
+  (next: Dispatch<Action>) =>
+  (action: Action) => {
+    if (action.type === "setLocalStream" && action.stream === null) {
+      const currStream = api.getState().localStream;
+      currStream?.getTracks().forEach(track => track.stop());
+    }
+    return next(action);
+  }
+
+const addRemoteDevice = (api: MiddlewareAPI<ConnectionState>) =>
+  (next: Dispatch<Action>) =>
+  (action: Action) => {
+    if (action.type === "addRemoteDevice") {
+      console.log(action.device);
+
+    }
+    return next(action);
+  }
