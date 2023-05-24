@@ -30,7 +30,12 @@ export async function setViewerConnection (
   
   // dispatch(ConnectionActionCreator.addConnection(cameraDoc.id, connection));
 
-  localStream.getTracks().forEach(track => connection.addTrack(track, localStream));
+  localStream.getTracks().forEach(track => {
+    if (track.kind === "audio") {
+      track.enabled = false;
+    }
+    connection.addTrack(track, localStream);
+  });
   const offer = await connection.createOffer();
   await connection.setLocalDescription(offer).catch(error => console.log(error));
 
@@ -45,3 +50,23 @@ export async function setViewerConnection (
   updateItem(viewerKey, viewerWithOffer);
   return connection;
 }
+
+/*
+viewer:
+  connection
+    eventlistener
+  docs
+    eventlistener
+  add tracks
+  make offer
+    on answer => connection
+
+camera:
+  connection
+    eventlistener
+  docs
+    eventlistener
+    on offer
+      add tracks
+      make answer
+*/
