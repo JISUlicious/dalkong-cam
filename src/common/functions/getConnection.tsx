@@ -1,8 +1,10 @@
 import { Dispatch } from "react";
-import openRelayTurnServer from "../../turnSettings";
+
 import { Action, ConnectionActionCreator, DeviceState } from "../contexts/ConnectionContext";
+
 import { addItem, updateItem } from "./storage";
 
+import openRelayTurnServer from "../../turnSettings";
 
 export function getConnection (
   localDeviceType: string,

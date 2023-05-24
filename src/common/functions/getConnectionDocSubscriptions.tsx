@@ -1,7 +1,8 @@
 import { collection, doc, onSnapshot, query } from "firebase/firestore";
-import { db } from "./firebaseInit";
-import { updateItem } from "./storage";
 
+import { db } from "./firebaseInit";
+
+import { updateItem } from "./storage";
 
 export function getConnectionDocSubscriptions (
   localDeviceType: string,
