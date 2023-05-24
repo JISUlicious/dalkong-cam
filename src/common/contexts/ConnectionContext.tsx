@@ -1,12 +1,9 @@
-import { DocumentSnapshot, Unsubscribe, doc, onSnapshot } from "firebase/firestore";
-import React, { createContext, Dispatch, PropsWithChildren, useContext, useReducer } from "react";
-import useMiddlewareReducer, { Middleware, MiddlewareAPI } from "../hooks/useReducerWithMiddleware";
-import openRelayTurnServer from "../../turnSettings";
-import { addItem } from "../functions/storage";
-import { db } from "../functions/firebaseInit";
-import { getConnection } from "../functions/getConnection";
-import { getConnectionDocSubscriptions } from "../functions/getConnectionDocSubscriptions";
-import { addRemoteDevice, setLocalStream } from "../functions/connectionMiddlewares";
+import React, { createContext, Dispatch, PropsWithChildren, useContext } from "react";
+import { DocumentSnapshot, Unsubscribe } from "firebase/firestore";
+
+import useMiddlewareReducer from "../hooks/useReducerWithMiddleware";
+
+import { addRemoteDevice, setLocalDevice, setLocalStream } from "../functions/connectionMiddlewares";
 
 export interface DeviceDoc {
   deviceName: string,
@@ -56,6 +53,7 @@ export type Action = {type: "setLocalDevice", device: DeviceState | null}
     id: string,
     subscriptions: Unsubscribe[]
   }
+  | {type: "removeSubscriptions", id: string }
 
 const initialState = {
   localDevice: null,
@@ -86,7 +84,8 @@ export const ConnectionActionCreator = {
   removeRemoteStream: (id: string): Action => ({type: "removeRemoteStream", id: id}),
   addConnection: (id: string, connection: RTCPeerConnection): Action => ({type: "addConnection", id: id, connection: connection}),
   removeConnection: (id: string): Action => ({type: "removeConnection", id: id}),
-  addSubscription: (id: string, subscriptions: Unsubscribe[]): Action => ({type: "addSubscriptions", id: id, subscriptions: subscriptions})
+  addSubscription: (id: string, subscriptions: Unsubscribe[]): Action => ({type: "addSubscriptions", id: id, subscriptions: subscriptions}),
+  removeSubscription: (id: string): Action => ({type: "removeSubscriptions", id: id})
 };
 
 export function connectionReducer (state: ConnectionState, action: Action): ConnectionState {
@@ -166,11 +165,28 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
         }
       }
     }
+    case "removeSubscriptions": {
+      if (state.subscriptions?.[action.id]) {
+        const subscription = {...state.subscriptions};
+        delete subscription[action.id];
+        return {...state, subscriptions: {...subscription}};
+      } else {
+        console.log(`Subscription with id ${action.id} does not exist`);
+        return state;
+      }
+    }
   }
 }
 
 export function ConnectionProvider ({children}: PropsWithChildren) {
-  const [state, dispatch] = useMiddlewareReducer(connectionReducer, initialState, [setLocalStream, addRemoteDevice]);
+  const [state, dispatch] = useMiddlewareReducer(
+    connectionReducer,
+    initialState,
+    [
+      setLocalStream,
+      setLocalDevice,
+      addRemoteDevice
+    ]);
   return (<ConnectionContext.Provider value={state}>
     <ConnectionDispatchContext.Provider value={dispatch}>
       {children}
