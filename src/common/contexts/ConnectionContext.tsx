@@ -1,10 +1,16 @@
-import { DocumentSnapshot } from "firebase/firestore";
+import { DocumentSnapshot, Unsubscribe, doc, onSnapshot } from "firebase/firestore";
 import React, { createContext, Dispatch, PropsWithChildren, useContext, useReducer } from "react";
 import useMiddlewareReducer, { Middleware, MiddlewareAPI } from "../hooks/useReducerWithMiddleware";
 import openRelayTurnServer from "../../turnSettings";
+import { addItem } from "../functions/storage";
+import { db } from "../functions/firebaseInit";
+import { getConnection } from "../functions/getConnection";
+import { getConnectionDocSubscriptions } from "../functions/getConnectionDocSubscriptions";
+import { addRemoteDevice, setLocalStream } from "../functions/connectionMiddlewares";
 
 export interface DeviceDoc {
   deviceName: string,
+  deviceType: string,
   offer?: RTCSessionDescriptionInit,
   answer?: RTCSessionDescriptionInit
 }
@@ -23,12 +29,17 @@ interface Connections {
   [id: string]: RTCPeerConnection
 }
 
+export interface Subscriptions {
+  [id: string]: Unsubscribe[]
+}
+
 export interface ConnectionState {
   localDevice: DeviceState | null,
   localStream: MediaStream | null,
   remoteStreams: RemoteStreams | null,
   remoteDevices: RemoteDevices,
   connections: Connections,
+  subscriptions: Subscriptions
 }
 
 export type Action = {type: "setLocalDevice", device: DeviceState | null}
@@ -40,13 +51,19 @@ export type Action = {type: "setLocalDevice", device: DeviceState | null}
   | {type: "removeRemoteStream", id: string}
   | {type: "addConnection", id: string, connection: RTCPeerConnection}
   | {type: "removeConnection", id: string}
+  | {
+    type: "addSubscriptions",
+    id: string,
+    subscriptions: Unsubscribe[]
+  }
 
 const initialState = {
   localDevice: null,
   localStream: null,
   remoteStreams: {} as RemoteStreams,
   remoteDevices: {} as RemoteDevices,
-  connections: {} as Connections
+  connections: {} as Connections,
+  subscriptions: {} as Subscriptions
 };
 
 const ConnectionContext = createContext<ConnectionState>(initialState);
@@ -69,6 +86,7 @@ export const ConnectionActionCreator = {
   removeRemoteStream: (id: string): Action => ({type: "removeRemoteStream", id: id}),
   addConnection: (id: string, connection: RTCPeerConnection): Action => ({type: "addConnection", id: id, connection: connection}),
   removeConnection: (id: string): Action => ({type: "removeConnection", id: id}),
+  addSubscription: (id: string, subscriptions: Unsubscribe[]): Action => ({type: "addSubscriptions", id: id, subscriptions: subscriptions})
 };
 
 export function connectionReducer (state: ConnectionState, action: Action): ConnectionState {
@@ -121,7 +139,6 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
       }
     }
     case "addConnection": {
-      console.log("new connection", action?.connection);
       return {
         ...state,
         connections: {
@@ -140,13 +157,20 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
         return state;
       }
     }
+    case "addSubscriptions": {
+      return {
+        ...state, 
+        subscriptions: {
+          ...state.subscriptions,
+          [action.id]: action.subscriptions
+        }
+      }
+    }
   }
 }
 
 export function ConnectionProvider ({children}: PropsWithChildren) {
-  // const [state, dispatch] = useReducer(connectionReducer, initialState);
-  
-  const [state, dispatch] = useMiddlewareReducer(connectionReducer, initialState, [setLocalStream]);
+  const [state, dispatch] = useMiddlewareReducer(connectionReducer, initialState, [setLocalStream, addRemoteDevice]);
   return (<ConnectionContext.Provider value={state}>
     <ConnectionDispatchContext.Provider value={dispatch}>
       {children}
@@ -154,22 +178,3 @@ export function ConnectionProvider ({children}: PropsWithChildren) {
   </ConnectionContext.Provider>)
 }
 
-const setLocalStream = (api: MiddlewareAPI<ConnectionState>) =>
-  (next: Dispatch<Action>) =>
-  (action: Action) => {
-    if (action.type === "setLocalStream" && action.stream === null) {
-      const currStream = api.getState().localStream;
-      currStream?.getTracks().forEach(track => track.stop());
-    }
-    return next(action);
-  }
-
-const addRemoteDevice = (api: MiddlewareAPI<ConnectionState>) =>
-  (next: Dispatch<Action>) =>
-  (action: Action) => {
-    if (action.type === "addRemoteDevice") {
-      console.log(action.device);
-
-    }
-    return next(action);
-  }
