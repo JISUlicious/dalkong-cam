@@ -79,6 +79,16 @@ export function middleware (state:ConnectionState, action: Action, dispatch: Dis
 
       return null;
     }
+    case "removeRemoteDevice": {
+      const id = action.id;
+      state.remoteStreams?.[id].getTracks().forEach(track => track.stop());
+      dispatch(ConnectionActionCreator.removeRemoteStream(id));
+      state.subscriptions?.[id].forEach(unsub => unsub());
+      dispatch(ConnectionActionCreator.removeSubscription(id));
+      state.connections?.[id].close()
+      dispatch(ConnectionActionCreator.removeConnection(id));
+      return null;
+    }
     default: {
       return null;
     }
