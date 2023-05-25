@@ -1,9 +1,7 @@
 import React, { createContext, Dispatch, PropsWithChildren, useContext } from "react";
 import { DocumentSnapshot, Unsubscribe } from "firebase/firestore";
 
-import useMiddlewareReducer from "../hooks/useReducerWithMiddleware";
-
-import { addRemoteDevice, setLocalDevice, setLocalStream } from "../functions/connectionMiddlewares";
+import { useMiddlewareReducer, middleware } from "../hooks/useReducerWithMiddleware";
 
 export interface DeviceDoc {
   deviceName: string,
@@ -182,11 +180,8 @@ export function ConnectionProvider ({children}: PropsWithChildren) {
   const [state, dispatch] = useMiddlewareReducer(
     connectionReducer,
     initialState,
-    [
-      setLocalStream,
-      setLocalDevice,
-      addRemoteDevice
-    ]);
+    middleware
+    );
   return (<ConnectionContext.Provider value={state}>
     <ConnectionDispatchContext.Provider value={dispatch}>
       {children}
