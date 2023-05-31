@@ -1,4 +1,4 @@
-import { useReducer } from "react";
+import { useMemo, useReducer } from "react";
 import { Action, ConnectionActionCreator, ConnectionState } from "../contexts/ConnectionContext";
 import { removeItem, removeItems } from "../functions/storage";
 import { getConnection } from "../functions/getConnection";
@@ -17,10 +17,18 @@ export function useMiddlewareReducer<A, B> (
 ): [A, Dispatch] {
   const [state, dispatch] = useReducer(reducer, initialState);
   
-  const dispatchWithMiddleware = async (action: B) => {
-    middleware(state, action, dispatch);
-    dispatch(action);
-  }
+  const dispatchWithMiddleware = useMemo(() => {
+    const dispatchWithMiddleware = (action: B) => {
+      middleware(state, action, dispatch);
+      dispatch(action);
+    }
+    return dispatchWithMiddleware
+  }, [state]);
+
+  // const dispatchWithMiddleware = async (action: B) => {
+  //   middleware(state, action, dispatch);
+  //   dispatch(action);
+  // }
 
   return [state, dispatchWithMiddleware];
 }
