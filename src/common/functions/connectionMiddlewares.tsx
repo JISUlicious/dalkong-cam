@@ -56,12 +56,12 @@ async (action: Action) => {
       ? `${action.device.ref.path}/connections/${localDevice?.id}`
       : `${localDevice?.ref.path}/connections/${action.device.id}`;
     
-    const connection = getConnection(localDeviceType!, sdpType, connectionKey, action, next, localStream);
+    const connection = getConnection(localDeviceType!, sdpType, connectionKey, action, api.dispatch, localStream);
     
     const [unsubDescriptions, unsubICECandidates] = getConnectionDocSubscriptions(localDeviceType!, sdpType, connectionKey, connection, localStream);
     
-    next(ConnectionActionCreator.addConnection(action.device.id, connection));
-    next(ConnectionActionCreator.addSubscription(action.device.id, [unsubDescriptions, unsubICECandidates]));
+    api.dispatch(ConnectionActionCreator.addConnection(action.device.id, connection));
+    api.dispatch(ConnectionActionCreator.addSubscription(action.device.id, [unsubDescriptions, unsubICECandidates]));
   }
   return next(action);
 };
