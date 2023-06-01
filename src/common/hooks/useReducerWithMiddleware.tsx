@@ -1,4 +1,4 @@
-import { useMemo, useReducer } from "react";
+import { useMemo, useReducer, useRef, useState } from "react";
 import { Action, ConnectionActionCreator, ConnectionState } from "../contexts/ConnectionContext";
 import { removeItem, removeItems } from "../functions/storage";
 import { getConnection } from "../functions/getConnection";
@@ -15,20 +15,21 @@ export function useMiddlewareReducer<A, B> (
   initialState: A,
   middleware: Middleware<A, B, Dispatch>
 ): [A, Dispatch] {
-  const [state, dispatch] = useReducer(reducer, initialState);
-  
+  const [state, setState] = useState(initialState);
+  const stateRef = useRef(state);
+
   const dispatchWithMiddleware = useMemo(() => {
+    const dispatch = (action: B) => {
+      stateRef.current = reducer(stateRef.current, action);
+      setState(stateRef.current);
+    };
+    
     const dispatchWithMiddleware = (action: B) => {
-      middleware(state, action, dispatch);
+      middleware(stateRef.current, action, dispatch);
       dispatch(action);
     }
     return dispatchWithMiddleware
   }, [state]);
-
-  // const dispatchWithMiddleware = async (action: B) => {
-  //   middleware(state, action, dispatch);
-  //   dispatch(action);
-  // }
 
   return [state, dispatchWithMiddleware];
 }
@@ -84,7 +85,7 @@ export function middleware (state:ConnectionState, action: Action, dispatch: Dis
       
       dispatch(ConnectionActionCreator.addConnection(action.device.id, connection));
       dispatch(ConnectionActionCreator.addSubscription(action.device.id, [unsubDescriptions, unsubICECandidates]));
-
+      
       return null;
     }
     case "removeRemoteDevice": {
