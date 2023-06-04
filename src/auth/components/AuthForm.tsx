@@ -1,13 +1,13 @@
-import React, { Dispatch, FormEvent } from "react";
+import React, { FormEvent, useState } from "react";
 
 interface AuthFormProps {
   buttonText: string,
-  setInputId: Dispatch<React.SetStateAction<string>>,
-  setInputPw: Dispatch<React.SetStateAction<string>>,
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void
+  onSubmit: (event: FormEvent<HTMLFormElement>, id: string, pw: string) => void
 }
 
-export function AuthForm ({buttonText, setInputId, setInputPw, onSubmit}: AuthFormProps) {
+export function AuthForm ({buttonText, onSubmit}: AuthFormProps) {
+  const [inputId, setInputId] = useState("");
+  const [inputPw, setInputPw] = useState("");
 
   function onChangeId (event: React.ChangeEvent<HTMLInputElement>) {
     setInputId(event.target.value);
@@ -17,7 +17,7 @@ export function AuthForm ({buttonText, setInputId, setInputPw, onSubmit}: AuthFo
     setInputPw(event.target.value);
   }
 
-  return (<form onSubmit={onSubmit}>
+  return (<form onSubmit={(event) => onSubmit(event, inputId, inputPw)}>
     <label>
       <input onChange={onChangeId} placeholder="ID" required />
     </label>
