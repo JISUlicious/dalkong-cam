@@ -1,0 +1,14 @@
+@import "Colors";
+@import "Header";
+
+.sidebar {
+  position: absolute;
+  top: $header-height;
+  left: 0;
+  bottom: 0;
+  background-color: $secondary-light-color;
+  width: 30%;
+  color: $secondary-accent-color;
+  padding: 10px 5px 2px;
+  z-index: 100;
+}
