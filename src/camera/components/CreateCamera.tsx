@@ -1,15 +1,21 @@
-import { useNavigate } from "react-router-dom";
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { getDoc } from "firebase/firestore";
+
 import { useAuthContext } from "../../common/contexts/AuthContext";
+import { 
+  ConnectionActionCreator, 
+  DeviceState, 
+  useConnectionDispatchContext 
+} from "../../common/contexts/ConnectionContext";
+
 import { addItem } from "../../common/functions/storage";
-import { DocumentSnapshot, getDoc } from "firebase/firestore";
-import { CameraState, StreamActionCreator, useStreamDispatchContext } from "../../common/contexts/StreamContext";
 
 export function CreateCamera () {
   const [input, setInput] = useState("");
-  const navigate = useNavigate();
   const {user} = useAuthContext();
-  const dispatch = useStreamDispatchContext();
+  const dispatch = useConnectionDispatchContext();
+  const navigate = useNavigate();
 
   function onChange (event: React.ChangeEvent<HTMLInputElement>) {
     setInput(event.target.value);
@@ -19,13 +25,11 @@ export function CreateCamera () {
     event.preventDefault();
     const key = `users/${user?.uid}/cameras`;
     const cameraInfo = {
-      cameraName: input
+      deviceName: input
     };
     addItem(key, cameraInfo).then(docRef => {
-      console.log(docRef);
       getDoc(docRef).then(doc => {
-        console.log(doc);
-        dispatch(StreamActionCreator.setCamera(doc as CameraState));
+        dispatch(ConnectionActionCreator.setLocalDevice(doc as DeviceState));
         navigate(`/camera/${docRef.id}`);
       });
     });
