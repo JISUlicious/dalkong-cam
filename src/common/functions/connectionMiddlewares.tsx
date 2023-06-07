@@ -11,7 +11,7 @@ export const setLocalStream = (api: MiddlewareAPI<ConnectionState>) =>
     const currStream = api.getState().localStream;
     currStream?.getTracks().forEach(track => track.stop());
   }
-  return next(action);
+  next(action);
 };
 
 export const setLocalDevice = (api: MiddlewareAPI<ConnectionState>) =>
@@ -40,7 +40,7 @@ export const setLocalDevice = (api: MiddlewareAPI<ConnectionState>) =>
       removeItem(localDevice!.ref.path);
     }
   }
-  return next(action);
+  next(action);
 };
 
 export const addRemoteDevice = (api: MiddlewareAPI<ConnectionState>) =>
@@ -63,7 +63,7 @@ async (action: Action) => {
     api.dispatch(ConnectionActionCreator.addConnection(action.device.id, connection));
     api.dispatch(ConnectionActionCreator.addSubscription(action.device.id, [unsubDescriptions, unsubICECandidates]));
   }
-  return next(action);
+  next(action);
 };
 
 export const removeRemoteDevice = (api: MiddlewareAPI<ConnectionState>) =>
@@ -79,7 +79,7 @@ export const removeRemoteDevice = (api: MiddlewareAPI<ConnectionState>) =>
     state.connections?.[id].close()
     api.dispatch(ConnectionActionCreator.removeConnection(id));
   }
-  return next(action);
+  next(action);
 };
 
 export const loger = (api: MiddlewareAPI<ConnectionState>) =>
@@ -88,5 +88,5 @@ export const loger = (api: MiddlewareAPI<ConnectionState>) =>
   console.log("before", api.getState());
   const result = next(action);
   console.log("after", api.getState());
-  return result;
+  
 };
