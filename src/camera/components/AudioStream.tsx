@@ -11,7 +11,8 @@ export function AudioStream({stream}: RTCStream) {
       return;
     streamRef.current.srcObject = stream;
   }, [stream]);
+  console.log("stream", stream);
 
-  return (<audio className="stream" ref={streamRef} autoPlay controls />);
+  return (<audio className="stream" ref={streamRef} autoPlay />);
 }
 

@@ -22,6 +22,7 @@ export const setLocalDevice = (api: MiddlewareAPI<ConnectionState>) =>
     const localDevice = state.localDevice;
     const localDeviceType = localDevice?.data()?.deviceType;
     const remoteDevices = state.remoteDevices;
+    
     if (localDeviceType === "viewer") {
       Object.keys(remoteDevices).map(id => {
         const connectionKey = `${remoteDevices[id].ref.path}/connections/${localDevice!.id}`;
@@ -39,7 +40,12 @@ export const setLocalDevice = (api: MiddlewareAPI<ConnectionState>) =>
       });
       removeItem(localDevice!.ref.path);
     }
+
+    Object.keys(remoteDevices).map(id => {
+      api.dispatch(ConnectionActionCreator.removeRemoteDevice(id))
+    });
   }
+  
   next(action);
 };
 

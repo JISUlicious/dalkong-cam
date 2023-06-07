@@ -1,3 +1,5 @@
+import "../../common/styles/Camera.scss";
+
 import React from "react";
 
 import { AudioStream } from "./AudioStream";
@@ -11,5 +13,7 @@ interface RemoteViewer {
 
 export function AudioItem ({viewer}: RemoteViewer) {
   const {remoteStreams} = useConnectionContext();
-  return <AudioStream stream={remoteStreams?.[viewer.id]} />
+  return <div className="remote-viewer">
+    <AudioStream stream={remoteStreams?.[viewer.id]} />
+  </div>
 }
