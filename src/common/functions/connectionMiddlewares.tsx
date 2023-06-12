@@ -62,7 +62,7 @@ async (action: Action) => {
       ? `${action.device.ref.path}/connections/${localDevice?.id}`
       : `${localDevice?.ref.path}/connections/${action.device.id}`;
     
-    const connection = getConnection(localDeviceType!, sdpType, connectionKey, action, api.dispatch, localStream);
+    const connection = getConnection(localDevice!, sdpType, connectionKey, action, api.dispatch, localStream);
     
     const [unsubDescriptions, unsubICECandidates] = getConnectionDocSubscriptions(localDeviceType!, sdpType, connectionKey, connection, localStream);
     

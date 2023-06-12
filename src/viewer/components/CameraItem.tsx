@@ -25,7 +25,7 @@ export function CameraItem({camera}: CameraItemProps) {
   }
 
   return (<div className="camera-item video-wrapper" onClick={onClick}>
-      <VideoOverlay stream={remoteStreams?.[camera?.id]} device={camera}/>
+      <VideoOverlay device={camera}/>
       <Stream stream={remoteStreams?.[camera?.id]} />
   </div>);
 }

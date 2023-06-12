@@ -4,12 +4,11 @@ import { FiVolume2, FiVolumeX, FiMic, FiMicOff } from "react-icons/fi";
 import { ConnectionActionCreator, DeviceState, useConnectionContext, useConnectionDispatchContext } from "../contexts/ConnectionContext";
 
 interface ControlsProps {
-  stream: MediaStream | null | undefined,
   device: DeviceState | null | undefined
 }
 
-export function Controls ({stream, device}: ControlsProps) {
-  const {localStream, localStreamAttributes, remoteStreamsAttributes} = useConnectionContext();
+export function Controls ({device}: ControlsProps) {
+  const {localStreamAttributes, remoteStreamsAttributes} = useConnectionContext();
   const dispatch = useConnectionDispatchContext();
 
   function onToggleMic () {
@@ -19,7 +18,7 @@ export function Controls ({stream, device}: ControlsProps) {
   function onToggleSpeaker () {
     dispatch(ConnectionActionCreator.toggleSpeaker(device!.id));
   }
-  
+
   return <div className="controls">
     <button className="icon-button" onClick={onToggleMic}>
       {localStreamAttributes.audioEnabled

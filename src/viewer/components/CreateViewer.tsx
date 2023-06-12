@@ -23,12 +23,6 @@ export function CreateViewer () {
 
   function onSubmit (event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    
-    // const key = `users/${user?.uid}/viewers`;
-    //   addItem(key, {deviceType: "viewer"}).then(async docRef => {
-    //     const viewerDoc = await getDoc(docRef);
-    //     dispatch(ConnectionActionCreator.setLocalDevice(viewerDoc as DeviceState));
-    //   });
 
     const key = `users/${user?.uid}/viewers`;
     const viewerInfo = {
