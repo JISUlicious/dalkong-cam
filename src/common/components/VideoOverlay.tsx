@@ -1,4 +1,4 @@
-import React from "react";
+import React, { MouseEvent } from "react";
 
 import { Controls } from "./Controls";
 
@@ -9,8 +9,12 @@ interface VideoOverlayProps {
   device: DeviceState | null
 }
 
+function onClick (event: MouseEvent) {
+  event.stopPropagation();
+}
+
 export function VideoOverlay({stream, device}: VideoOverlayProps) {
-  return (<div className="video-overlay">
+  return (<div className="video-overlay" onClick={onClick}>
     <Controls stream={stream} device={device}/>
     <h1 className="camera-name">{device?.data()?.deviceName}</h1>
   </div>);

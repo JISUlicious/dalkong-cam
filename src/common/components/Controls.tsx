@@ -19,8 +19,7 @@ export function Controls ({stream, device}: ControlsProps) {
   function onToggleSpeaker () {
     dispatch(ConnectionActionCreator.toggleSpeaker(device!.id));
   }
-  console.log("remote", remoteStreamsAttributes[device!.id]?.audioEnabled)
-  console.log("local", localStreamAttributes.audioEnabled)
+  
   return <div className="controls">
     <button className="icon-button" onClick={onToggleMic}>
       {localStreamAttributes.audioEnabled

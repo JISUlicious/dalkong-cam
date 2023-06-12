@@ -29,11 +29,9 @@ export function Viewer () {
     if (!localStream?.active) {
       getMedia().then(localMedia => {
         localMedia.getTracks().forEach(track => {
-          console.log("before", track)
           if (track.kind === "audio") {
             track.enabled = false;
           }
-          console.log("after", track)
         });
         dispatch(ConnectionActionCreator.setLocalStream(localMedia));
       });

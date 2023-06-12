@@ -107,7 +107,6 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
       if (action.stream) {
         streamAttributes.audioEnabled = action.stream.getAudioTracks()[0].enabled
       }
-      console.log("localStream", action.stream?.getTracks().forEach(track => console.log(track)));
       return {...state, localStream: action.stream, localStreamAttributes: streamAttributes};
     }
     case "addRemoteDevice": {
