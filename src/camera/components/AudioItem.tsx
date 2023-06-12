@@ -14,6 +14,7 @@ interface RemoteViewer {
 export function AudioItem ({viewer}: RemoteViewer) {
   const {remoteStreams} = useConnectionContext();
   return <div className="remote-viewer">
+    {viewer.data()?.deviceName}
     <AudioStream stream={remoteStreams?.[viewer.id]} />
   </div>
 }

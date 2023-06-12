@@ -20,7 +20,6 @@ export function Main () {
           Camera
         </button>
       </Link>
-      {/* <Link to={`/viewer/${user?.uid}`}> */}
       <Link to={"/viewer"}>
         <button>
           Viewer

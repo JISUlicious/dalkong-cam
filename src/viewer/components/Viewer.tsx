@@ -63,9 +63,9 @@ export function Viewer () {
 
   return (<div className="viewer body-content">
     <h1>Viewer</h1>
-    {user?.email}
+    {localDevice?.data()?.deviceName}
     <div className="list-cameras-wrapper">
-      list of camera
+      list of cameras
       <ul>
         {Object.entries(remoteDevices).map(([id, camera]) => {
           return (<li key={id}>

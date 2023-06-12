@@ -7,7 +7,7 @@ import { addItem, updateItem } from "./storage";
 import openRelayTurnServer from "../../turnSettings";
 
 export function getConnection (
-  localDeviceType: string,
+  localDevice: DeviceState,
   sdpType: "offer" | "answer",
   connectionKey: string, 
   action: {type: "addRemoteDevice", device: DeviceState}, 
@@ -29,7 +29,7 @@ export function getConnection (
     dispatch(ConnectionActionCreator.addRemoteStream(action.device.id, remoteStream));
   };
 
-  if (localDeviceType === "viewer") {
+  if (localDevice.data()?.deviceType === "viewer") {
     localStream?.getTracks().forEach(track => {
       connection.addTrack(track, localStream);
     });
@@ -39,7 +39,9 @@ export function getConnection (
         offer: {
           type: offer.type,
           sdp: offer.sdp
-        }
+        },
+        deviceType: "viewer",
+        deviceName: localDevice.data()?.deviceName
       };
       updateItem(connectionKey, viewerWithOffer);
 

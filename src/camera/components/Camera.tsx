@@ -62,15 +62,16 @@ export function Camera () {
 
   return (<div className="camera body-content">
     <div className="video-wrapper">
-      <VideoOverlay stream={localStream} device={localDevice}/>
+      <VideoOverlay device={localDevice}/>
       <Stream stream={localStream} muted={true} />
     </div>
     <div className="remote-media">
       <ul>
         {Object.entries(remoteDevices).map(([id, viewer]) => {
-            return (<li key={id}>
-              <AudioItem viewer={viewer} />
-            </li>);
+          console.log("viewer", viewer, viewer.data());
+          return (<li key={id}>
+            <AudioItem viewer={viewer} />
+          </li>);
         })}
       </ul>
     </div>
