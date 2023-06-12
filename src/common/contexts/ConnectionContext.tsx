@@ -14,21 +14,18 @@ export interface DeviceDoc {
 
 export type DeviceState = DocumentSnapshot<DeviceDoc>;
 
-interface RemoteStreams {
-  [id: string]: MediaStream
+interface StreamAttributes {
+  audioEnabled: boolean,
+  isRecording: boolean
 }
 
-interface RemoteDevices {
-  [id: string]: DeviceState
-}
+type RemoteStreams = Record<string, MediaStream>
 
-interface Connections {
-  [id: string]: RTCPeerConnection
-}
+type RemoteDevices = Record<string, DeviceState>
 
-export interface Subscriptions {
-  [id: string]: Unsubscribe[]
-}
+type Connections = Record<string, RTCPeerConnection>
+
+type Subscriptions = Record<string, Unsubscribe[]>
 
 export interface ConnectionState {
   localDevice: DeviceState | null,
@@ -36,7 +33,9 @@ export interface ConnectionState {
   remoteStreams: RemoteStreams | null,
   remoteDevices: RemoteDevices,
   connections: Connections,
-  subscriptions: Subscriptions
+  subscriptions: Subscriptions,
+  localStreamAttributes: StreamAttributes,
+  remoteStreamsAttributes: Record<string, StreamAttributes>
 }
 
 export type Action = {type: "setLocalDevice", device: DeviceState | null}
@@ -53,15 +52,19 @@ export type Action = {type: "setLocalDevice", device: DeviceState | null}
     id: string,
     subscriptions: Unsubscribe[]
   }
-  | {type: "removeSubscriptions", id: string }
+  | {type: "removeSubscriptions", id: string}
+  | {type: "toggleMic"}
+  | {type: "toggleSpeaker", id: string}
 
 const initialState = {
   localDevice: null,
   localStream: null,
-  remoteStreams: {} as RemoteStreams,
-  remoteDevices: {} as RemoteDevices,
-  connections: {} as Connections,
-  subscriptions: {} as Subscriptions
+  remoteStreams: {},
+  remoteDevices: {},
+  connections: {},
+  subscriptions: {},
+  localStreamAttributes: {} as StreamAttributes,
+  remoteStreamsAttributes: {}
 };
 
 const ConnectionContext = createContext<ConnectionState>(initialState);
@@ -85,7 +88,9 @@ export const ConnectionActionCreator = {
   addConnection: (id: string, connection: RTCPeerConnection): Action => ({type: "addConnection", id: id, connection: connection}),
   removeConnection: (id: string): Action => ({type: "removeConnection", id: id}),
   addSubscription: (id: string, subscriptions: Unsubscribe[]): Action => ({type: "addSubscriptions", id: id, subscriptions: subscriptions}),
-  removeSubscription: (id: string): Action => ({type: "removeSubscriptions", id: id})
+  removeSubscription: (id: string): Action => ({type: "removeSubscriptions", id: id}),
+  toggleMic: (): Action => ({type: "toggleMic"}),
+  toggleSpeaker: (id: string): Action => ({type: "toggleSpeaker", id: id})
 };
 
 export function connectionReducer (state: ConnectionState, action: Action): ConnectionState {
@@ -94,7 +99,15 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
       return {...state, localDevice: action.device};
     }
     case "setLocalStream": {
-      return {...state, localStream: action.stream};
+      // eslint-disable-next-line prefer-const
+      let streamAttributes = {
+        audioEnabled: false,
+        isRecording: false
+      };
+      if (action.stream) {
+        streamAttributes.audioEnabled = action.stream.getAudioTracks()[0].enabled
+      }
+      return {...state, localStream: action.stream, localStreamAttributes: streamAttributes};
     }
     case "addRemoteDevice": {
       return {
@@ -124,6 +137,13 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
         remoteStreams: {
           ...state.remoteStreams,
           [action.id as string]: action.stream
+        },
+        remoteStreamsAttributes: {
+          ...state.remoteStreamsAttributes,
+          [action.id as string]: {
+            audioEnabled: action.stream.getAudioTracks()[0].enabled,
+            isRecording: false
+          }
         }
       };
     }
@@ -174,6 +194,33 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
         console.log(`Subscription with id ${action.id} does not exist`);
         return state;
       }
+    }
+    case "toggleMic": {
+      const audioTrack = state.localStream!.getAudioTracks()[0];
+      const newAudioTrackEnabledValue = !audioTrack.enabled;
+      audioTrack.enabled = newAudioTrackEnabledValue;
+      return {
+        ...state,
+        localStreamAttributes: {
+          ...state.localStreamAttributes,
+          audioEnabled: newAudioTrackEnabledValue
+        }
+      };
+    }
+    case "toggleSpeaker": {
+      const audioTrack = state.remoteStreams?.[action.id].getAudioTracks()[0];
+      const newAudioTrackEnabledValue = !audioTrack!.enabled;
+      audioTrack!.enabled = newAudioTrackEnabledValue;
+      return {
+        ...state,
+        remoteStreamsAttributes: {
+          ...state.remoteStreamsAttributes,
+          [action.id]: {
+            ...state.remoteStreamsAttributes[action.id],
+            audioEnabled: newAudioTrackEnabledValue
+          }
+        }
+      };
     }
   }
 }

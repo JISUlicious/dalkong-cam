@@ -11,7 +11,7 @@ interface VideoOverlayProps {
 
 export function VideoOverlay({stream, device}: VideoOverlayProps) {
   return (<div className="video-overlay">
-    <Controls stream={stream}/>
+    <Controls stream={stream} device={device}/>
     <h1 className="camera-name">{device?.data()?.deviceName}</h1>
   </div>);
 }
