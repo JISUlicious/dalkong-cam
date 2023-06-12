@@ -13,7 +13,6 @@ import {
   useConnectionDispatchContext
 } from "../../common/contexts/ConnectionContext";
 
-import { addItem} from "../../common/functions/storage";
 import { getMedia } from "../../common/functions/getMedia";
 import { db } from "../../common/functions/firebaseInit";
 
@@ -29,6 +28,13 @@ export function Viewer () {
   useEffect(() => {
     if (!localStream?.active) {
       getMedia().then(localMedia => {
+        localMedia.getTracks().forEach(track => {
+          console.log("before", track)
+          if (track.kind === "audio") {
+            track.enabled = false;
+          }
+          console.log("after", track)
+        });
         dispatch(ConnectionActionCreator.setLocalStream(localMedia));
       });
     }

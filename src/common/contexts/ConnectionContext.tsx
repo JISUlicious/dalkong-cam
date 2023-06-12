@@ -107,6 +107,7 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
       if (action.stream) {
         streamAttributes.audioEnabled = action.stream.getAudioTracks()[0].enabled
       }
+      console.log("localStream", action.stream?.getTracks().forEach(track => console.log(track)));
       return {...state, localStream: action.stream, localStreamAttributes: streamAttributes};
     }
     case "addRemoteDevice": {
@@ -208,6 +209,18 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
       };
     }
     case "toggleSpeaker": {
+      if (action.id === state.localDevice?.id) {
+        const audioTrack = state.localStream?.getAudioTracks()[0];
+        const newAudioTrackEnabledValue = !audioTrack!.enabled;
+        audioTrack!.enabled = newAudioTrackEnabledValue;
+        return {
+          ...state,
+          localStreamAttributes: {
+            ...state.localStreamAttributes,
+            audioEnabled: newAudioTrackEnabledValue
+          }
+        };
+      }
       const audioTrack = state.remoteStreams?.[action.id].getAudioTracks()[0];
       const newAudioTrackEnabledValue = !audioTrack!.enabled;
       audioTrack!.enabled = newAudioTrackEnabledValue;

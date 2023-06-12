@@ -31,9 +31,6 @@ export function getConnection (
 
   if (localDeviceType === "viewer") {
     localStream?.getTracks().forEach(track => {
-      if (track.kind === "audio") {
-        track.enabled = false;
-      }
       connection.addTrack(track, localStream);
     });
     connection.createOffer().then(offer => {

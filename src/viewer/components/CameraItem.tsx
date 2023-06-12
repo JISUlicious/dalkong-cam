@@ -28,7 +28,7 @@ export function CameraItem({camera}: CameraItemProps) {
     {/* <h1>{camera.data()?.deviceName}</h1>
     <Stream stream={remoteStreams?.[camera?.id]} /> */}
     
-      <VideoOverlay stream={remoteStreams?.[camera?.id]} device={localDevice}/>
+      <VideoOverlay stream={remoteStreams?.[camera?.id]} device={camera}/>
       <Stream stream={remoteStreams?.[camera?.id]} />
 
   </div>);
