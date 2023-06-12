@@ -27,16 +27,6 @@ export function Viewer () {
   const dispatch = useConnectionDispatchContext();
 
   useEffect(() => {
-    if (user) {
-      const key = `users/${user?.uid}/viewers`;
-      addItem(key, {deviceType: "viewer"}).then(async docRef => {
-        const viewerDoc = await getDoc(docRef);
-        dispatch(ConnectionActionCreator.setLocalDevice(viewerDoc as DeviceState));
-      });
-    }
-  }, [user]);
-
-  useEffect(() => {
     if (!localStream?.active) {
       getMedia().then(localMedia => {
         dispatch(ConnectionActionCreator.setLocalStream(localMedia));

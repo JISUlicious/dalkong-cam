@@ -1,32 +1,34 @@
 import React from "react";
 import { FiVolume2, FiVolumeX, FiMic, FiMicOff } from "react-icons/fi";
 
-import { useConnectionContext } from "../contexts/ConnectionContext";
+import { ConnectionActionCreator, DeviceState, useConnectionContext, useConnectionDispatchContext } from "../contexts/ConnectionContext";
 
 interface ControlsProps {
-  stream: MediaStream | null | undefined
+  stream: MediaStream | null | undefined,
+  device: DeviceState | null | undefined
 }
 
-export function Controls ({stream}: ControlsProps) {
-  const {localStream} = useConnectionContext();
+export function Controls ({stream, device}: ControlsProps) {
+  const {localStream, localStreamAttributes, remoteStreamsAttributes} = useConnectionContext();
+  const dispatch = useConnectionDispatchContext();
 
   function onToggleMic () {
-    localStream?.getAudioTracks().forEach(track => track.enabled = !track.enabled);
+    dispatch(ConnectionActionCreator.toggleMic());
   }
 
   function onToggleSpeaker () {
-    stream?.getAudioTracks().forEach(track => track.enabled = !track.enabled);
+    dispatch(ConnectionActionCreator.toggleSpeaker(device!.id));
   }
 
   return <div className="controls">
     <button className="icon-button" onClick={onToggleMic}>
-      {localStream?.getAudioTracks()[0].enabled
+      {localStreamAttributes.audioEnabled
         ? <FiMic className="icon mic" />
         : <FiMicOff className="icon mic" />
       }
     </button>
     <button className="icon-button" onClick={onToggleSpeaker}>
-      {stream?.getAudioTracks()[0].enabled
+      {remoteStreamsAttributes[device!.id]?.audioEnabled
         ? <FiVolume2 className="icon speaker" />
         : <FiVolumeX className="icon speaker" />
       }
