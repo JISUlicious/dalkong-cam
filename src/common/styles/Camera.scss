@@ -76,12 +76,20 @@ select {
   color: $secondary-accent-color;
 }
 
+.remote-media {
+  ul {
+    display: inline-flex;
+  }
+}
+
 .remote-viewer {
-  display: flex;
-  width: 50px;
-  height: 50px;
-  border-radius: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid white;
+  padding: 4px;
   background-color: $primary-accent-color;
+  display: flex;
   align-items: center;
   justify-content: center;
 }
