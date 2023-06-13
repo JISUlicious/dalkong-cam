@@ -68,7 +68,6 @@ export function Camera () {
     <div className="remote-media">
       <ul>
         {Object.entries(remoteDevices).map(([id, viewer]) => {
-          console.log("viewer", viewer, viewer.data());
           return (<li key={id}>
             <AudioItem viewer={viewer} />
           </li>);
