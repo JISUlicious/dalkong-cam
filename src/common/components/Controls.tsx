@@ -12,7 +12,6 @@ export function Controls ({device}: ControlsProps) {
   const {localStreamAttributes, remoteStreamsAttributes} = useConnectionContext();
   const dispatch = useConnectionDispatchContext();
   const [cameras, currentCamera, setCurrentCamera] = useCameras();
-  console.log(cameras, currentCamera);
 
   function onToggleMic () {
     dispatch(ConnectionActionCreator.toggleMic());
