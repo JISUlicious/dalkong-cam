@@ -2,6 +2,7 @@ import React from "react";
 import { FiVolume2, FiVolumeX, FiMic, FiMicOff } from "react-icons/fi";
 
 import { ConnectionActionCreator, DeviceState, useConnectionContext, useConnectionDispatchContext } from "../contexts/ConnectionContext";
+import { useCameras } from "../hooks/useCameras";
 
 interface ControlsProps {
   device: DeviceState | null | undefined
@@ -10,6 +11,8 @@ interface ControlsProps {
 export function Controls ({device}: ControlsProps) {
   const {localStreamAttributes, remoteStreamsAttributes} = useConnectionContext();
   const dispatch = useConnectionDispatchContext();
+  const [cameras, currentCamera, setCurrentCamera] = useCameras();
+  console.log(cameras, currentCamera);
 
   function onToggleMic () {
     dispatch(ConnectionActionCreator.toggleMic());
@@ -33,9 +36,9 @@ export function Controls ({device}: ControlsProps) {
       }
     </button>
     <select className="camera-select">
-      <option value="default">default</option>
-      <option value="second">second</option>
-      <option value="list-of-cameras">list of cameras...</option>
+      {cameras.map((camera, i) => {
+        return (<option key={camera.deviceId} value={camera.deviceId}>{camera.label}</option>);
+      })}
     </select>
 
   </div>
