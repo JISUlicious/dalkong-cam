@@ -36,7 +36,8 @@ export function Controls ({device}: ControlsProps) {
     </button>
     <select className="camera-select">
       {cameras.map((camera, i) => {
-        return (<option key={camera.deviceId} value={camera.deviceId}>{camera.label}</option>);
+        const selected = camera.deviceId === currentCamera?.deviceId ? true : false;
+        return (<option key={camera.deviceId} value={camera.deviceId} selected={selected}>{camera.label}</option>);
       })}
     </select>
 
