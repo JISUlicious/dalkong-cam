@@ -252,6 +252,7 @@ export function ConnectionProvider ({children}: PropsWithChildren) {
       setLocalDevice,
       addRemoteDevice,
       removeRemoteDevice,
+      logger
     ]);
   return (<ConnectionContext.Provider value={state}>
     <ConnectionDispatchContext.Provider value={dispatch}>
