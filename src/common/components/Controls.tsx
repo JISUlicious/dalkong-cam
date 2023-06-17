@@ -1,15 +1,16 @@
-import React from "react";
+import React, { ChangeEvent } from "react";
 import { FiVolume2, FiVolumeX, FiMic, FiMicOff } from "react-icons/fi";
 
 import { ConnectionActionCreator, DeviceState, useConnectionContext, useConnectionDispatchContext } from "../contexts/ConnectionContext";
 import { useCameras } from "../hooks/useCameras";
+import { getMedia } from "../functions/getMedia";
 
 interface ControlsProps {
   device: DeviceState | null | undefined
 }
 
 export function Controls ({device}: ControlsProps) {
-  const {localStreamAttributes, remoteStreamsAttributes} = useConnectionContext();
+  const {localDevice, localStreamAttributes, remoteStreamsAttributes} = useConnectionContext();
   const dispatch = useConnectionDispatchContext();
   const [cameras, currentCamera, setCurrentCamera] = useCameras();
 
@@ -19,6 +20,14 @@ export function Controls ({device}: ControlsProps) {
 
   function onToggleSpeaker () {
     dispatch(ConnectionActionCreator.toggleSpeaker(device!.id));
+  }
+
+  function onCameraChange (event: ChangeEvent<HTMLSelectElement>) {
+    const deviceId = event.target.value;
+    getMedia(deviceId).then(stream => {
+      dispatch(ConnectionActionCreator.setLocalStream(stream));
+    });
+    setCurrentCamera(cameras[deviceId]);
   }
 
   return <div className="controls">
@@ -34,12 +43,14 @@ export function Controls ({device}: ControlsProps) {
         : <FiVolume2 className="icon speaker" />
       }
     </button>
-    <select className="camera-select">
-      {cameras.map((camera, i) => {
-        const selected = camera.deviceId === currentCamera?.deviceId ? true : false;
-        return (<option key={camera.deviceId} value={camera.deviceId} selected={selected}>{camera.label}</option>);
-      })}
-    </select>
+    {localDevice?.data()?.deviceType === "camera" 
+      ? <select className="camera-select" onChange={onCameraChange} defaultValue={currentCamera?.deviceId}>
+        {Object.entries(cameras).map(([deviceId, camera]) => {
+          return (<option key={deviceId} value={deviceId}>{camera.label}</option>);
+        })}
+      </select>
+      : null
+    }
 
   </div>
 }

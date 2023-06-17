@@ -3,7 +3,7 @@ import { DocumentSnapshot, Unsubscribe } from "firebase/firestore";
 
 import useMiddlewareReducer from "../hooks/useReducerWithMiddleware";
 
-import { addRemoteDevice, removeRemoteDevice, setLocalDevice, setLocalStream } from "../functions/connectionMiddlewares";
+import { addRemoteDevice, logger, removeRemoteDevice, setLocalDevice, setLocalStream } from "../functions/connectionMiddlewares";
 
 export interface DeviceDoc {
   deviceName: string,
@@ -45,7 +45,7 @@ export type Action = {type: "setLocalDevice", device: DeviceState | null}
   | {type: "clearRemoteDevices"}
   | {type: "addRemoteStream", stream: MediaStream, id: string}
   | {type: "removeRemoteStream", id: string}
-  | {type: "addConnection", id: string, connection: RTCPeerConnection}
+  | {type: "setConnection", id: string, connection: RTCPeerConnection}
   | {type: "removeConnection", id: string}
   | {
     type: "addSubscriptions",
@@ -85,7 +85,7 @@ export const ConnectionActionCreator = {
   clearRemoteDevices: (): Action => ({type: "clearRemoteDevices"}),
   addRemoteStream: (id: string, stream: MediaStream): Action => ({type: "addRemoteStream", stream: stream, id: id}),
   removeRemoteStream: (id: string): Action => ({type: "removeRemoteStream", id: id}),
-  addConnection: (id: string, connection: RTCPeerConnection): Action => ({type: "addConnection", id: id, connection: connection}),
+  setConnection: (id: string, connection: RTCPeerConnection): Action => ({type: "setConnection", id: id, connection: connection}),
   removeConnection: (id: string): Action => ({type: "removeConnection", id: id}),
   addSubscription: (id: string, subscriptions: Unsubscribe[]): Action => ({type: "addSubscriptions", id: id, subscriptions: subscriptions}),
   removeSubscription: (id: string): Action => ({type: "removeSubscriptions", id: id}),
@@ -105,7 +105,7 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
         isRecording: false
       };
       if (action.stream) {
-        streamAttributes.audioEnabled = action.stream.getAudioTracks()[0].enabled
+        streamAttributes.audioEnabled = action.stream.getAudioTracks()[0].enabled;
       }
       return {...state, localStream: action.stream, localStreamAttributes: streamAttributes};
     }
@@ -151,13 +151,19 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
       if (state.remoteStreams?.[action.id]) {
         const remoteStreams = {...state.remoteStreams};
         delete remoteStreams[action.id];
-        return {...state, remoteStreams: {...remoteStreams}};
+        const remoteStreamsAttributes = {...state.remoteStreamsAttributes};
+        delete remoteStreamsAttributes[action.id];
+        return {
+          ...state,
+          remoteStreams: {...remoteStreams},
+          remoteStreamsAttributes: {...remoteStreamsAttributes}
+        };
       } else {
         console.log(`Remote stream with id ${action.id} does not exist`);
         return state;
       }
     }
-    case "addConnection": {
+    case "setConnection": {
       return {
         ...state,
         connections: {
@@ -245,12 +251,12 @@ export function ConnectionProvider ({children}: PropsWithChildren) {
       setLocalStream,
       setLocalDevice,
       addRemoteDevice,
-      removeRemoteDevice
+      removeRemoteDevice,
     ]);
   return (<ConnectionContext.Provider value={state}>
     <ConnectionDispatchContext.Provider value={dispatch}>
       {children}
     </ConnectionDispatchContext.Provider>
-  </ConnectionContext.Provider>)
+  </ConnectionContext.Provider>);
 }
 

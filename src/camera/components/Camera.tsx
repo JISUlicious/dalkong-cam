@@ -22,9 +22,8 @@ import { getMedia } from "../../common/functions/getMedia";
 
 export function Camera () {
   const {user} = useAuthContext();
-  const {localDevice, localStream, remoteDevices} = useConnectionContext();
+  const {localDevice, localStream, remoteDevices, connections} = useConnectionContext();
   const dispatch = useConnectionDispatchContext();
-  
   const savedTimes = ["2023-02-01 12:00:00", "2023-02-01 12:05:00", "2023-02-01 12:10:00", "a", "ddd", "aaa", "g"];
 
   useEffect(() => {
@@ -33,30 +32,31 @@ export function Camera () {
         dispatch(ConnectionActionCreator.setLocalStream(localMedia));
       });
     }
+    return (() => {
+      dispatch(ConnectionActionCreator.setLocalDevice(null));
+      dispatch(ConnectionActionCreator.setLocalStream(null));
+    });
   }, []);
   
   useEffect(() => {
     if (user && localDevice && localStream) {
-      const key = `users/${user.uid}/cameras/${localDevice.id}`;
-      const viewersQuery = query(
-        collection(db, key, "connections")
-      );
+      if (Object.keys(connections).length === 0) {
+        const key = `users/${user.uid}/cameras/${localDevice.id}`;
+        const viewersQuery = query(
+          collection(db, key, "connections")
+        );
 
-      const unsubscribeViewersCollection = onSnapshot(viewersQuery, async (snapshot) => {
-        snapshot.docChanges().forEach(async (change) => {
-          if (change.type === "added") {
-            dispatch(ConnectionActionCreator.addRemoteDevice(change.doc as DeviceState));
-          } else if (change.type === "removed") {
-            dispatch(ConnectionActionCreator.removeRemoteDevice(change.doc.id));
-          }
-        });
-      }, (error) => console.log(error));
-      return () => {
-        unsubscribeViewersCollection();
-
-        dispatch(ConnectionActionCreator.setLocalDevice(null));
-        dispatch(ConnectionActionCreator.setLocalStream(null));
-      };
+        const unsubscribeViewersCollection = onSnapshot(viewersQuery, async (snapshot) => {
+          snapshot.docChanges().forEach(async (change) => {
+            if (change.type === "added") {
+              dispatch(ConnectionActionCreator.addRemoteDevice(change.doc as DeviceState));
+            } else if (change.type === "removed") {
+              dispatch(ConnectionActionCreator.removeRemoteDevice(change.doc.id));
+            }
+          });
+        }, (error) => console.log(error));
+        dispatch(ConnectionActionCreator.addSubscription("viewersCollection", [unsubscribeViewersCollection]));
+      }
     }
   }, [user, localDevice, localStream]);
 
