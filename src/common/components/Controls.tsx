@@ -1,4 +1,4 @@
-import React, { ChangeEvent } from "react";
+import React, { ChangeEvent, useEffect } from "react";
 import { FiVolume2, FiVolumeX, FiMic, FiMicOff } from "react-icons/fi";
 
 import { ConnectionActionCreator, DeviceState, useConnectionContext, useConnectionDispatchContext } from "../contexts/ConnectionContext";
@@ -12,8 +12,8 @@ interface ControlsProps {
 export function Controls ({device}: ControlsProps) {
   const {localDevice, localStreamAttributes, remoteStreamsAttributes} = useConnectionContext();
   const dispatch = useConnectionDispatchContext();
-  const [cameras, currentCamera, setCurrentCamera] = useCameras();
-
+  const cameras = useCameras();
+  
   function onToggleMic () {
     dispatch(ConnectionActionCreator.toggleMic());
   }
@@ -27,7 +27,6 @@ export function Controls ({device}: ControlsProps) {
     getMedia(deviceId).then(stream => {
       dispatch(ConnectionActionCreator.setLocalStream(stream));
     });
-    setCurrentCamera(cameras[deviceId]);
   }
 
   return <div className="controls">
@@ -44,7 +43,7 @@ export function Controls ({device}: ControlsProps) {
       }
     </button>
     {localDevice?.data()?.deviceType === "camera" 
-      ? <select className="camera-select" onChange={onCameraChange} defaultValue={currentCamera?.deviceId}>
+      ? <select className="camera-select" onChange={onCameraChange} >
         {Object.entries(cameras).map(([deviceId, camera]) => {
           return (<option key={deviceId} value={deviceId}>{camera.label}</option>);
         })}
