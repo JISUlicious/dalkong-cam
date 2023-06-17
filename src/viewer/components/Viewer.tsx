@@ -36,6 +36,10 @@ export function Viewer () {
         dispatch(ConnectionActionCreator.setLocalStream(localMedia));
       });
     }
+    return (() => {
+      dispatch(ConnectionActionCreator.setLocalStream(null));
+      dispatch(ConnectionActionCreator.setLocalDevice(null));
+    });
   }, []);
 
   useEffect(() => {
@@ -51,13 +55,7 @@ export function Viewer () {
           }
         });
       }, (error) => console.log(error));  
-
-      return (() => {
-        unsubscribeCamerasCollection();
-        
-        dispatch(ConnectionActionCreator.setLocalStream(null));
-        dispatch(ConnectionActionCreator.setLocalDevice(null));
-      });
+      dispatch(ConnectionActionCreator.addSubscription("camerasCollection", [unsubscribeCamerasCollection]));
     }
   }, [user, localDevice, localStream]);
 
