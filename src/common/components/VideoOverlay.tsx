@@ -15,6 +15,6 @@ function onClick (event: MouseEvent) {
 export function VideoOverlay({device}: VideoOverlayProps) {
   return (<div className="video-overlay" onClick={onClick}>
     <Controls device={device}/>
-    <h1 className="camera-name">{device?.data()?.deviceName}</h1>
+    <div className="camera-name">{device?.data()?.deviceName}</div>
   </div>);
 }
