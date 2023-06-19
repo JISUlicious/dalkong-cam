@@ -214,30 +214,23 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
       };
     }
     case "toggleSpeaker": {
+      const newRemoteStreamsAttributes = {...state.remoteStreamsAttributes};
       if (action.id === state.localDevice?.id) {
-        const audioTrack = state.localStream?.getAudioTracks()[0];
+        Object.entries(state.remoteStreams!).map(([id, stream]) => {
+          const audioTrack = stream.getAudioTracks()[0];
+          const newAudioTrackEnabledValue = !audioTrack.enabled;
+          audioTrack.enabled = newAudioTrackEnabledValue;
+          newRemoteStreamsAttributes[id].audioEnabled = newAudioTrackEnabledValue;
+        });
+      } else {
+        const audioTrack = state.remoteStreams?.[action.id].getAudioTracks()[0];
         const newAudioTrackEnabledValue = !audioTrack!.enabled;
         audioTrack!.enabled = newAudioTrackEnabledValue;
-        return {
-          ...state,
-          localStreamAttributes: {
-            ...state.localStreamAttributes,
-            audioEnabled: newAudioTrackEnabledValue
-          }
-        };
+        newRemoteStreamsAttributes[action.id].audioEnabled = newAudioTrackEnabledValue;
       }
-      const audioTrack = state.remoteStreams?.[action.id].getAudioTracks()[0];
-      const newAudioTrackEnabledValue = !audioTrack!.enabled;
-      audioTrack!.enabled = newAudioTrackEnabledValue;
       return {
         ...state,
-        remoteStreamsAttributes: {
-          ...state.remoteStreamsAttributes,
-          [action.id]: {
-            ...state.remoteStreamsAttributes[action.id],
-            audioEnabled: newAudioTrackEnabledValue
-          }
-        }
+        remoteStreamsAttributes: newRemoteStreamsAttributes
       };
     }
   }
@@ -252,7 +245,6 @@ export function ConnectionProvider ({children}: PropsWithChildren) {
       setLocalDevice,
       addRemoteDevice,
       removeRemoteDevice,
-      logger
     ]);
   return (<ConnectionContext.Provider value={state}>
     <ConnectionDispatchContext.Provider value={dispatch}>

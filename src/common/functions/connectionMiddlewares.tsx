@@ -22,7 +22,6 @@ export const setLocalStream = (api: MiddlewareAPI<ConnectionState>) =>
       videoSender?.replaceTrack(action.stream!.getVideoTracks()[0]);
       const audioSender = senders.find((sender) => sender.track?.kind === "audio");
       audioSender?.replaceTrack(action.stream!.getAudioTracks()[0]);
-      api.dispatch(ConnectionActionCreator.setConnection(remoteId, connection));
     });
   }
   next(action);
@@ -36,7 +35,6 @@ export const setLocalDevice = (api: MiddlewareAPI<ConnectionState>) =>
     const localDevice = state.localDevice;
     const localDeviceType = localDevice?.data()?.deviceType;
     const remoteDevices = state.remoteDevices;
-    const remoteDeviceType = localDeviceType === "viewer" ? "camera" : "viewer";
     
     if (localDeviceType === "viewer") {
       Object.keys(remoteDevices).map(id => {
@@ -59,11 +57,7 @@ export const setLocalDevice = (api: MiddlewareAPI<ConnectionState>) =>
     Object.keys(remoteDevices).map(id => {
       api.dispatch(ConnectionActionCreator.removeRemoteDevice(id))
     });
-
-    state.subscriptions[`${remoteDeviceType}sCollection`][0]();
-    api.dispatch(ConnectionActionCreator.removeSubscription(`${remoteDeviceType}sCollection`));
   }
-  
   next(action);
 };
 
@@ -71,6 +65,7 @@ export const addRemoteDevice = (api: MiddlewareAPI<ConnectionState>) =>
 (next: Dispatch) =>
 async (action: Action) => {
   if (action.type === "addRemoteDevice") {
+
     const localDevice = api.getState().localDevice;
     const localDeviceType = localDevice?.data()?.deviceType;
     const sdpType = localDeviceType === "viewer" ? "offer" : "answer";
@@ -79,8 +74,15 @@ async (action: Action) => {
     const connectionKey = localDeviceType === "viewer" 
       ? `${action.device.ref.path}/connections/${localDevice?.id}`
       : `${localDevice?.ref.path}/connections/${action.device.id}`;
-    
-    const connection = getConnection(localDevice!, sdpType, connectionKey, action, api.dispatch, localStream);
+
+    const connection = getConnection(
+      localDevice!, 
+      sdpType, 
+      connectionKey, 
+      action, 
+      api.dispatch, 
+      localStream
+      );
     
     const [unsubDescriptions, unsubICECandidates] = getConnectionDocSubscriptions(
       localDeviceType!, 

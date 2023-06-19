@@ -1,7 +1,7 @@
 import "../../common/styles/Camera.scss";
 
 import React, { useEffect } from "react";
-import { collection, onSnapshot, query } from "firebase/firestore";
+import { collection, doc, getDoc, onSnapshot, query } from "firebase/firestore";
 
 import { VideoItem } from "../../viewer/components/VideoItem";
 import { Stream } from "../../common/components/Stream";
@@ -18,6 +18,8 @@ import {
 
 import { db } from "../../common/functions/firebaseInit";
 import { getMedia } from "../../common/functions/getMedia";
+import { useParams } from "react-router-dom";
+import { getItem, removeItem, removeItems, updateItem } from "../../common/functions/storage";
 
 
 export function Camera () {
@@ -25,6 +27,29 @@ export function Camera () {
   const {localDevice, localStream, remoteDevices, connections} = useConnectionContext();
   const dispatch = useConnectionDispatchContext();
   const savedTimes = ["2023-02-01 12:00:00", "2023-02-01 12:05:00", "2023-02-01 12:10:00", "a", "ddd", "aaa", "g"];
+
+
+  const {cameraId} = useParams();
+  useEffect(() => {
+    if (!localDevice && user) {
+      getItem(`users/${user.uid}/cameras/${cameraId}/connections`)
+        .then(snapshot => {
+          snapshot.forEach(doc => {
+            removeItems(`${doc.ref.path}/offeringCandidates`);
+            removeItems(`${doc.ref.path}/answeringCandidates`);
+            removeItem(doc.ref.path);
+          });
+        });
+
+      getDoc(doc(db, `users/${user.uid}/cameras/${cameraId}`))
+        .then(doc => {
+          const updatedDoc = doc.data();
+          updatedDoc!.updated = new Date()
+          updateItem(`users/${user.uid}/cameras/${cameraId}`, updatedDoc!)
+          dispatch(ConnectionActionCreator.setLocalDevice(doc as DeviceState));
+        });
+    }
+  }, [user, localDevice]);
 
   useEffect(() => {
     if (!localStream?.active) {
@@ -55,10 +80,10 @@ export function Camera () {
             }
           });
         }, (error) => console.log(error));
-        dispatch(ConnectionActionCreator.addSubscription("viewersCollection", [unsubscribeViewersCollection]));
+        return (() => unsubscribeViewersCollection());
       }
     }
-  }, [user, localDevice, localStream]);
+  }, [user, localDevice, !!localStream]);
 
   return (<div className="camera body-content">
     <div className="video-wrapper">
