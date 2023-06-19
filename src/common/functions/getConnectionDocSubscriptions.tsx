@@ -28,7 +28,8 @@ export function getConnectionDocSubscriptions (
         answer: {
           type: answer.type,
           sdp: answer.sdp
-        }
+        },
+        answerTime: new Date()
       };
       updateItem(connectionKey, viewerWithAnswer);
     }

@@ -36,12 +36,16 @@ export function Controls ({device}: ControlsProps) {
         : <FiMicOff className="icon mic" />
       }
     </button>
-    <button className="icon-button" onClick={onToggleSpeaker}>
-      {!remoteStreamsAttributes[device!.id]?.audioEnabled
+    
+    {localDevice?.data()?.deviceType === "viewer" 
+      ? <button className="icon-button" onClick={onToggleSpeaker}>
+        {!remoteStreamsAttributes[device!.id]?.audioEnabled
         ? <FiVolumeX className="icon speaker" />
-        : <FiVolume2 className="icon speaker" />
-      }
-    </button>
+        : <FiVolume2 className="icon speaker" />}
+      </button>
+      : null
+    }
+    
     {localDevice?.data()?.deviceType === "camera" 
       ? <select className="camera-select" onChange={onCameraChange} >
         {Object.entries(cameras).map(([deviceId, camera]) => {
