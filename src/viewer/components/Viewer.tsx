@@ -23,7 +23,7 @@ export function Viewer () {
 
   const {user} = useAuthContext();
   
-  const {localStream, localDevice, remoteDevices} = useConnectionContext();
+  const {localStream, localDevice, remoteDevices, connections} = useConnectionContext();
 
   const dispatch = useConnectionDispatchContext();
 
@@ -80,6 +80,7 @@ export function Viewer () {
   }, [user, localDevice, !!localStream]);
 
   return (<div className="viewer body-content">
+    <button onClick={() => console.log(connections)}>b</button>
     <h1>Viewer</h1>
     {localDevice?.data()?.deviceName}
     <div className="list-cameras-wrapper">
