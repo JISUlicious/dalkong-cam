@@ -1,13 +1,11 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-
-import { Stream } from "../../common/components/Stream";
 
 import { 
   DeviceState, 
   useConnectionContext
 } from "../../common/contexts/ConnectionContext";
-import { VideoOverlay } from "../../common/components/VideoOverlay";
+import { VideoWithControls } from "../../common/components/VideoWithControls";
 
 
 interface CameraItemProps {
@@ -16,16 +14,20 @@ interface CameraItemProps {
 
 export function CameraItem({camera}: CameraItemProps) {
   
-  const {remoteStreams, localDevice} = useConnectionContext();
-
+  const {remoteStreams} = useConnectionContext();
   const navigate = useNavigate();
 
+  const streamRef = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    if (remoteStreams?.[camera?.id]) {
+      if (!streamRef.current || !remoteStreams?.[camera?.id])
+        return;
+      streamRef.current.srcObject = remoteStreams?.[camera?.id];
+    }
+  }, [remoteStreams?.[camera?.id]]);
+  
   function onClick () {
     // navigate(`/viewer/${localDevice?.id}/camera/${camera.id}`); // TODO: make route
   }
-
-  return (<div className="camera-item video-wrapper" onClick={onClick}>
-      <VideoOverlay device={camera}/>
-      <Stream stream={remoteStreams?.[camera?.id]} />
-  </div>);
+  return (<VideoWithControls ref={streamRef} device={camera} />);
 }

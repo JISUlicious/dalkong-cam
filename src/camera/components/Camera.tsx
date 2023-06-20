@@ -4,8 +4,6 @@ import React, { useEffect, useRef } from "react";
 import { collection, doc, getDoc, onSnapshot, query } from "firebase/firestore";
 
 import { VideoItem } from "../../viewer/components/VideoItem";
-import { Stream } from "../../common/components/Stream";
-import { VideoOverlay } from "../../common/components/VideoOverlay";
 import { AudioItem } from "./AudioItem";
 
 import { useAuthContext } from "../../common/contexts/AuthContext";
@@ -38,7 +36,6 @@ export function Camera () {
     }
   }, [localStream]);
 
-  console.log("streamRef", streamRef);
   const {cameraId} = useParams();
   useEffect(() => {
     if (!localDevice && user) {
@@ -96,11 +93,7 @@ export function Camera () {
   }, [user, localDevice, !!localStream]);
 
   return (<div className="camera body-content">
-    {/* <div className="video-wrapper">
-      <VideoOverlay device={localDevice}/>
-      <Stream stream={localStream} muted={true} />
-    </div> */}
-    <VideoWithControls ref={streamRef} device={localDevice} stream={localStream} muted={true}/>
+    <VideoWithControls ref={streamRef} device={localDevice} muted={true}/>
     <div className="remote-media">
       <ul>
         {Object.entries(remoteDevices).map(([id, viewer]) => {
