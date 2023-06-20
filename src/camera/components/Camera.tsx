@@ -1,6 +1,6 @@
 import "../../common/styles/Camera.scss";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { collection, doc, getDoc, onSnapshot, query } from "firebase/firestore";
 
 import { VideoItem } from "../../viewer/components/VideoItem";
@@ -20,6 +20,7 @@ import { db } from "../../common/functions/firebaseInit";
 import { getMedia } from "../../common/functions/getMedia";
 import { useParams } from "react-router-dom";
 import { getItem, removeItem, removeItems, updateItem } from "../../common/functions/storage";
+import { VideoWithControls } from "../../common/components/VideoWithControls";
 
 
 export function Camera () {
@@ -28,7 +29,16 @@ export function Camera () {
   const dispatch = useConnectionDispatchContext();
   const savedTimes = ["2023-02-01 12:00:00", "2023-02-01 12:05:00", "2023-02-01 12:10:00", "a", "ddd", "aaa", "g"];
 
+  const streamRef = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    if (localStream) {
+      if (!streamRef.current || !localStream)
+        return;
+      streamRef.current.srcObject = localStream;
+    }
+  }, [localStream]);
 
+  console.log("streamRef", streamRef);
   const {cameraId} = useParams();
   useEffect(() => {
     if (!localDevice && user) {
@@ -86,10 +96,11 @@ export function Camera () {
   }, [user, localDevice, !!localStream]);
 
   return (<div className="camera body-content">
-    <div className="video-wrapper">
+    {/* <div className="video-wrapper">
       <VideoOverlay device={localDevice}/>
       <Stream stream={localStream} muted={true} />
-    </div>
+    </div> */}
+    <VideoWithControls ref={streamRef} device={localDevice} stream={localStream} muted={true}/>
     <div className="remote-media">
       <ul>
         {Object.entries(remoteDevices).map(([id, viewer]) => {

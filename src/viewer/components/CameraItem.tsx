@@ -21,7 +21,7 @@ export function CameraItem({camera}: CameraItemProps) {
   const navigate = useNavigate();
 
   function onClick () {
-    navigate(`/viewer/${localDevice?.id}/camera/${camera.id}`); // TODO: make route
+    // navigate(`/viewer/${localDevice?.id}/camera/${camera.id}`); // TODO: make route
   }
 
   return (<div className="camera-item video-wrapper" onClick={onClick}>
