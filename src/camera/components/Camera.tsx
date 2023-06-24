@@ -20,8 +20,7 @@ import { useParams } from "react-router-dom";
 import { getItem, removeItem, removeItems, updateItem } from "../../common/functions/storage";
 import { VideoWithControls } from "../../common/components/VideoWithControls";
 import { Canvas } from "./Canvas";
-import { detectMotion, detectMotionFromStream, timer } from "../../common/functions/detectMotion";
-
+import { useRecording } from "../hooks/useRecording";
 
 export function Camera () {
   const {user} = useAuthContext();
@@ -33,26 +32,8 @@ export function Camera () {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
   const savedTimes = ["2023-02-01 12:00:00", "2023-02-01 12:05:00", "2023-02-01 12:10:00", "a", "ddd", "aaa", "g"];
-  useEffect(()=>{
-    if (canvasRef && streamRef) {
-      const captureInterval = 100;
-      const canvas = canvasRef.current;
-      const width = 64;
-      const height = 48;
-      canvas!.style.display = "none";
-      canvas!.width = width;
-      canvas!.height = height;
-      const context = canvasRef.current?.getContext('2d');
-      const interval = setInterval(async ()=>{
-        context?.drawImage(streamRef.current!, 0, 0, width, height);   
-        await timer(captureInterval);
-        context?.drawImage(streamRef.current!, 0, 0, width, height);
-        detectMotion(context);
-        context?.clearRect(0, 0, width, height);
-      }, captureInterval * 2);
-      return () => clearInterval(interval);
-    }
-}, [canvasRef, streamRef]);
+  
+  useRecording(canvasRef, streamRef, dispatch);
 
   useEffect(() => {
     if (localStream) {

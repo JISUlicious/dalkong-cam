@@ -55,6 +55,8 @@ export type Action = {type: "setLocalDevice", device: DeviceState | null}
   | {type: "removeSubscriptions", id: string}
   | {type: "toggleMic"}
   | {type: "toggleSpeaker", id: string}
+  | {type: "setIsRecording", isRecording: boolean, id?: string}
+  
 
 const initialState = {
   localDevice: null,
@@ -90,7 +92,13 @@ export const ConnectionActionCreator = {
   addSubscription: (id: string, subscriptions: Unsubscribe[]): Action => ({type: "addSubscriptions", id: id, subscriptions: subscriptions}),
   removeSubscription: (id: string): Action => ({type: "removeSubscriptions", id: id}),
   toggleMic: (): Action => ({type: "toggleMic"}),
-  toggleSpeaker: (id: string): Action => ({type: "toggleSpeaker", id: id})
+  toggleSpeaker: (id: string): Action => ({type: "toggleSpeaker", id: id}),
+  setIsRecording: (isRecording: boolean, id?: string): Action => {
+    if (id) {
+      return ({type: "setIsRecording", isRecording: isRecording, id: id});
+    }
+    return ({type: "setIsRecording", isRecording: isRecording});
+  }
 };
 
 export function connectionReducer (state: ConnectionState, action: Action): ConnectionState {
@@ -233,7 +241,21 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
         remoteStreamsAttributes: newRemoteStreamsAttributes
       };
     }
-    
+    case "setIsRecording": {
+      // from viewer
+      if (action.id) { 
+        // TODO: read camera doc isRecording and setit to context value
+      }
+      // from camera
+      // TODO: set value isRecording on document 
+      return {
+        ...state,
+        localStreamAttributes: {
+          ...state.localStreamAttributes,
+          isRecording: action.isRecording
+        }
+      };
+    }
   }
 }
 
