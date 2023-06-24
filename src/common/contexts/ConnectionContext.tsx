@@ -14,9 +14,10 @@ export interface DeviceDoc {
 
 export type DeviceState = DocumentSnapshot<DeviceDoc>;
 
-interface StreamAttributes {
+export interface StreamAttributes {
   audioEnabled: boolean,
-  isRecording: boolean
+  isRecording: boolean,
+  lastMotionDetected: Date | null,
 }
 
 type RemoteStreams = Record<string, MediaStream>
@@ -55,7 +56,7 @@ export type Action = {type: "setLocalDevice", device: DeviceState | null}
   | {type: "removeSubscriptions", id: string}
   | {type: "toggleMic"}
   | {type: "toggleSpeaker", id: string}
-  | {type: "setIsRecording", isRecording: boolean, id?: string}
+  | {type: "setIsRecording", isRecording: boolean, lastMotionDetected: Date | null, id?: string}
   
 
 const initialState = {
@@ -93,11 +94,11 @@ export const ConnectionActionCreator = {
   removeSubscription: (id: string): Action => ({type: "removeSubscriptions", id: id}),
   toggleMic: (): Action => ({type: "toggleMic"}),
   toggleSpeaker: (id: string): Action => ({type: "toggleSpeaker", id: id}),
-  setIsRecording: (isRecording: boolean, id?: string): Action => {
+  setIsRecording: (isRecording: boolean, lastMotionDetected: Date | null, id?: string): Action => {
     if (id) {
-      return ({type: "setIsRecording", isRecording: isRecording, id: id});
+      return ({type: "setIsRecording", isRecording: isRecording, lastMotionDetected: lastMotionDetected, id: id});
     }
-    return ({type: "setIsRecording", isRecording: isRecording});
+    return ({type: "setIsRecording", isRecording: isRecording, lastMotionDetected: lastMotionDetected});
   }
 };
 
@@ -110,7 +111,8 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
       // eslint-disable-next-line prefer-const
       let streamAttributes = {
         audioEnabled: false,
-        isRecording: false
+        isRecording: false,
+        lastMotionDetected: null
       };
       if (action.stream) {
         streamAttributes.audioEnabled = action.stream.getAudioTracks()[0].enabled;
@@ -150,7 +152,8 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
           ...state.remoteStreamsAttributes,
           [action.id as string]: {
             audioEnabled: action.stream.getAudioTracks()[0].enabled,
-            isRecording: false
+            isRecording: false,
+            lastMotionDetected: null
           }
         }
       };
@@ -248,11 +251,15 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
       }
       // from camera
       // TODO: set value isRecording on document 
+      const lastMotionDetected = action.lastMotionDetected 
+        ? action.lastMotionDetected 
+        : state.localStreamAttributes.lastMotionDetected;
       return {
         ...state,
         localStreamAttributes: {
           ...state.localStreamAttributes,
-          isRecording: action.isRecording
+          isRecording: action.isRecording,
+          lastMotionDetected: lastMotionDetected
         }
       };
     }

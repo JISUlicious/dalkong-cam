@@ -1,6 +1,6 @@
 import "../../common/styles/Camera.scss";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { collection, doc, getDoc, onSnapshot, query } from "firebase/firestore";
 
 import { VideoItem } from "../../viewer/components/VideoItem";
@@ -24,16 +24,27 @@ import { useRecording } from "../hooks/useRecording";
 
 export function Camera () {
   const {user} = useAuthContext();
-  const {localDevice, localStream, remoteDevices, connections} = useConnectionContext();
+  const {localDevice, localStream, remoteDevices, connections, localStreamAttributes} = useConnectionContext();
   const dispatch = useConnectionDispatchContext();
   
   const {cameraId} = useParams();
   const streamRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const recorder = useMemo(() => {
+    if (localStream) {
+      console.log("setting mediaRecorder");
+      const recorder = new MediaRecorder(localStream);
+      recorder.ondataavailable = (event) => {
+        console.log(event);
+
+      }
+      return recorder;
+    } 
+    }, [localStream]);
   
   const savedTimes = ["2023-02-01 12:00:00", "2023-02-01 12:05:00", "2023-02-01 12:10:00", "a", "ddd", "aaa", "g"];
   
-  useRecording(canvasRef, streamRef, dispatch);
+  useRecording(canvasRef, streamRef, localStreamAttributes, recorder, dispatch);
 
   useEffect(() => {
     if (localStream) {
