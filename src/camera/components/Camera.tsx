@@ -1,6 +1,6 @@
 import "../../common/styles/Camera.scss";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { collection, doc, getDoc, onSnapshot, query } from "firebase/firestore";
 
 import { VideoItem } from "../../viewer/components/VideoItem";
@@ -19,15 +19,41 @@ import { getMedia } from "../../common/functions/getMedia";
 import { useParams } from "react-router-dom";
 import { getItem, removeItem, removeItems, updateItem } from "../../common/functions/storage";
 import { VideoWithControls } from "../../common/components/VideoWithControls";
+import { Canvas } from "./Canvas";
+import { detectMotion, detectMotionFromStream, timer } from "../../common/functions/detectMotion";
 
 
 export function Camera () {
   const {user} = useAuthContext();
   const {localDevice, localStream, remoteDevices, connections} = useConnectionContext();
   const dispatch = useConnectionDispatchContext();
-  const savedTimes = ["2023-02-01 12:00:00", "2023-02-01 12:05:00", "2023-02-01 12:10:00", "a", "ddd", "aaa", "g"];
-
+  
+  const {cameraId} = useParams();
   const streamRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  
+  const savedTimes = ["2023-02-01 12:00:00", "2023-02-01 12:05:00", "2023-02-01 12:10:00", "a", "ddd", "aaa", "g"];
+  useEffect(()=>{
+    if (canvasRef && streamRef) {
+      const captureInterval = 100;
+      const canvas = canvasRef.current;
+      const width = 64;
+      const height = 48;
+      canvas!.style.display = "none";
+      canvas!.width = width;
+      canvas!.height = height;
+      const context = canvasRef.current?.getContext('2d');
+      const interval = setInterval(async ()=>{
+        context?.drawImage(streamRef.current!, 0, 0, width, height);   
+        await timer(captureInterval);
+        context?.drawImage(streamRef.current!, 0, 0, width, height);
+        detectMotion(context);
+        context?.clearRect(0, 0, width, height);
+      }, captureInterval * 2);
+      return () => clearInterval(interval);
+    }
+}, [canvasRef, streamRef]);
+
   useEffect(() => {
     if (localStream) {
       if (!streamRef.current || !localStream)
@@ -36,7 +62,6 @@ export function Camera () {
     }
   }, [localStream]);
 
-  const {cameraId} = useParams();
   useEffect(() => {
     if (!localDevice && user) {
       getItem(`users/${user.uid}/cameras/${cameraId}/connections`)
@@ -113,5 +138,6 @@ export function Camera () {
         })}
       </ul>
     </div>
+    <Canvas ref={canvasRef}/>
   </div>);
 }

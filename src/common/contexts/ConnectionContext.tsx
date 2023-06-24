@@ -233,6 +233,7 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
         remoteStreamsAttributes: newRemoteStreamsAttributes
       };
     }
+    
   }
 }
 
