@@ -29,7 +29,7 @@ export function useRecording (
         dispatch(ConnectionActionCreator.setIsRecording(isRecording));
         
         context?.clearRect(0, 0, width, height);
-      }, captureInterval * 2);
+      }, captureInterval);
       return () => clearInterval(interval);
     }
   }, [canvasRef, streamRef]);
