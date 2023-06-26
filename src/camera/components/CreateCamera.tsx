@@ -24,9 +24,11 @@ export function CreateCamera () {
   function onSubmit (event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const key = `users/${user?.uid}/cameras`;
+    const sessionId = Date.now();
     const cameraInfo = {
       deviceName: input,
-      deviceType: "camera"
+      deviceType: "camera",
+      sessionId: sessionId
     };
     addItem(key, cameraInfo).then(docRef => {
       getDoc(docRef).then(doc => {

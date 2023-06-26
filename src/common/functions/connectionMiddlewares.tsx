@@ -61,11 +61,17 @@ export const setLocalDevice = (api: MiddlewareAPI<ConnectionState>) =>
   next(action);
 };
 
+
 export const addRemoteDevice = (api: MiddlewareAPI<ConnectionState>) =>
 (next: Dispatch) =>
 async (action: Action) => {
-  if (action.type === "addRemoteDevice") {
-
+  if (
+    action.type === "addRemoteDevice" 
+    // && (
+    //   !Object.keys(api.getState().remoteDevices).includes(action.device.id)
+    //   || api.getState().remoteDevices[action.device.id].data()?.sessionId !== action.device.data()?.sessionId) 
+    ) {
+    
     const localDevice = api.getState().localDevice;
     const localDeviceType = localDevice?.data()?.deviceType;
     const sdpType = localDeviceType === "viewer" ? "offer" : "answer";
