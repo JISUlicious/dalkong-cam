@@ -10,10 +10,11 @@ import {
   deleteDoc,
   QueryFieldFilterConstraint,
   updateDoc,
-  deleteField
+  deleteField,
 } from "firebase/firestore";
 
 import { db, storage } from "./firebaseInit";
+import { ref, uploadBytes } from "firebase/storage";
 
 export function getItem(key: string, filter?: QueryFieldFilterConstraint): Promise<QuerySnapshot<DocumentData>> {
   if (filter) {
@@ -29,7 +30,10 @@ export function getItem(key: string, filter?: QueryFieldFilterConstraint): Promi
   }
 }
 
-export function addItem(key: string, value: object) {
+export function addItem(key: string, value: object, id: string | null = null) {
+  if (id) {
+    return setDoc(doc(db, key, id), value).then(() => doc(db, key, id));
+  }
   return addDoc(collection(db, key), value);
 }
 
@@ -49,4 +53,9 @@ export function removeItems(key: string) {
 export function removeField(key: string, field: string) {
   return updateDoc(doc(db, key), {[field]: deleteField()});
 }
+
 // TODO: export function storeFile
+export function storeFile(key: string, file: Blob) {
+  
+  return uploadBytes(ref(storage, key), file);
+}

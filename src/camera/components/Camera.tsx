@@ -1,7 +1,7 @@
 import "../../common/styles/Camera.scss";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { collection, doc, getDoc, onSnapshot, query } from "firebase/firestore";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import { DocumentData, DocumentReference, collection, doc, getDoc, onSnapshot, query } from "firebase/firestore";
 
 import { VideoItem } from "../../viewer/components/VideoItem";
 import { AudioItem } from "./AudioItem";
@@ -17,39 +17,58 @@ import {
 import { db } from "../../common/functions/firebaseInit";
 import { getMedia } from "../../common/functions/getMedia";
 import { useParams } from "react-router-dom";
-import { getItem, removeItem, removeItems, updateItem } from "../../common/functions/storage";
+import { addItem, getItem, removeItem, removeItems, storeFile, updateItem } from "../../common/functions/storage";
 import { VideoWithControls } from "../../common/components/VideoWithControls";
 import { Canvas } from "./Canvas";
 import { useRecording } from "../hooks/useRecording";
 
 export function Camera () {
   const {user} = useAuthContext();
-  const {localDevice, localStream, remoteDevices, connections, localStreamAttributes} = useConnectionContext();
+  const {localDevice, localStream, remoteDevices, connections} = useConnectionContext();
   const dispatch = useConnectionDispatchContext();
   
   const {cameraId} = useParams();
 
-  const streamRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef1 = useRef<HTMLCanvasElement>(null);
+  const canvasRef2 = useRef<HTMLCanvasElement>(null);
 
   const recorder = useMemo(() => {
     if (localStream) {
-      console.log("setting mediaRecorder");
       const recorder = new MediaRecorder(localStream);
-
       return recorder;
     } 
     }, [localStream]);
   
   const savedTimes = ["2023-02-01 12:00:00", "2023-02-01 12:05:00", "2023-02-01 12:10:00", "a", "ddd", "aaa", "g"];
   
-  useRecording(canvasRef, streamRef, localStreamAttributes, recorder, dispatch);
+  const onRecorderStop = useCallback((blob: Blob[]) => {
+    if (user && localDevice) {
+      const savedVideoId = Date.now();
+      const key = `savedVideos/${user.uid}/${localDevice.id}/${savedVideoId}`;
+      const recordedBlob = new Blob(blob, { type: "video/webm" });
+      return storeFile(key, recordedBlob).then(
+        (result): Promise<DocumentReference<object>> | Promise<DocumentReference<DocumentData>> => {
+        const key = `users/${user.uid}/savedVideos`;
+        return addItem(
+          key, 
+          {
+            path: result.ref.parent?.fullPath, 
+            deviceName: localDevice.data()?.deviceName
+          }, 
+          result.ref.name
+          );
+      });
+    }
+  }, [user, localDevice])
+
+  useRecording(videoRef, recorder, onRecorderStop);
 
   useEffect(() => {
     if (localStream) {
-      if (!streamRef.current || !localStream)
+      if (!videoRef.current || !localStream)
         return;
-      streamRef.current.srcObject = localStream;
+      videoRef.current.srcObject = localStream;
     }
   }, [localStream]);
 
@@ -66,9 +85,9 @@ export function Camera () {
 
       getDoc(doc(db, `users/${user.uid}/cameras/${cameraId}`))
         .then(doc => {
-          const updatedDoc = doc.data();
-          updatedDoc!.sessionId = Date.now();
-          updateItem(`users/${user.uid}/cameras/${cameraId}`, updatedDoc!);
+          const updatedDoc = doc.data()!;
+          updatedDoc.sessionId = Date.now();
+          updateItem(`users/${user.uid}/cameras/${cameraId}`, updatedDoc);
           dispatch(ConnectionActionCreator.setLocalDevice(doc as DeviceState));
         });
     }
@@ -109,8 +128,9 @@ export function Camera () {
   }, [user, localDevice, !!localStream]);
 
   return (<div className="camera body-content">
-    <VideoWithControls ref={streamRef} device={localDevice} muted={true}/>
-    <Canvas ref={canvasRef}/>
+    <VideoWithControls ref={videoRef} device={localDevice} muted={true}/>
+    <Canvas ref={canvasRef1} />
+    <Canvas ref={canvasRef2} />
     <div className="remote-media">
       <ul>
         {Object.entries(remoteDevices).map(([id, viewer]) => {
