@@ -25,9 +25,11 @@ export function CreateViewer () {
     event.preventDefault();
 
     const key = `users/${user?.uid}/viewers`;
+    const sessionId = Date.now();
     const viewerInfo = {
       deviceName: input,
-      deviceType: "viewer"
+      deviceType: "viewer",
+      sessionId: sessionId
     };
     addItem(key, viewerInfo).then(docRef => {
       getDoc(docRef).then(doc => {

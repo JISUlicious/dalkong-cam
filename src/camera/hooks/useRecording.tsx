@@ -1,50 +1,68 @@
-import { Dispatch, RefObject, useEffect } from "react";
-import { detectMotion, timer } from "../../common/functions/detectMotion";
+import { Dispatch, RefObject, useEffect, useState } from "react";
+import { detectMotion } from "../../common/functions/detectMotion";
 import { Action, ConnectionActionCreator, StreamAttributes } from "../../common/contexts/ConnectionContext";
-import { time } from "console";
 
 export function useRecording (
   canvasRef: RefObject<HTMLCanvasElement>, 
-  streamRef: RefObject<HTMLVideoElement>,
+  videoRef: RefObject<HTMLVideoElement>,
   localStreamAttributes: StreamAttributes,
   recorder: MediaRecorder | undefined,
   dispatch: Dispatch<Action>,
   ) {
+  const [blob, setBlob] = useState<Blob | null>();
+  const [lastMotionDetectedTime, setLastMotionDetectedTime] = useState<Date>();
+  
+
+
+  useEffect(() => {
+    if (recorder && recorder.ondataavailable === null) {
+      recorder.ondataavailable = (event) => {
+        setBlob(event.data);
+      };
+    }
+  }, [recorder]);
+
   useEffect(()=>{
-    if (canvasRef && streamRef) {
+    if (canvasRef.current && videoRef.current) {
       const canvas = canvasRef.current;
-      const context = canvasRef.current?.getContext('2d');
+      const context = canvasRef.current.getContext('2d')!;
       
-      const captureInterval = 100;
+      const captureInterval = 1000;
       const width = 64;
       const height = 48;
       
-      canvas!.style.display = "none";
-      canvas!.width = width;
-      canvas!.height = height;
+      // canvas.style.display = "none";
+      canvas.width = width;
+      canvas.height = height;
 
+      let isEmpty = true;
       const interval = setInterval(async ()=>{
-        context?.drawImage(streamRef.current!, 0, 0, width, height);   
-        await timer(captureInterval);
-        context?.drawImage(streamRef.current!, 0, 0, width, height);
-        
-        const motionDetected = await detectMotion(context);
-        
-        if (motionDetected) {
-          const motionDetectedTime = new Date();
-          dispatch(ConnectionActionCreator.setIsRecording(motionDetected, motionDetectedTime));
+        context.drawImage(videoRef.current!, 0, 0, width, height);  
+        if (isEmpty) {
+          // code for drawing first image
+          isEmpty = false;
         } else {
-          dispatch(ConnectionActionCreator.setIsRecording(motionDetected, null));
+          // code to draw, compare, clear context
+          const motionDetected = detectMotion(context);
+          
+          if (motionDetected) {
+            const motionDetectedTime = new Date();
+            dispatch(ConnectionActionCreator.setIsRecording(motionDetected, motionDetectedTime));
+          } else {
+            dispatch(ConnectionActionCreator.setIsRecording(motionDetected, null));
+          }
+          
+          context?.clearRect(0, 0, width, height);
+          isEmpty = true;
+          
         }
-        
-        context?.clearRect(0, 0, width, height);
       }, captureInterval);
       return () => {
-        context?.clearRect(0, 0, width, height);
+        context.clearRect(0, 0, width, height);
         clearInterval(interval);
       };
     }
-  }, [canvasRef, streamRef]);
+  }, [canvasRef, videoRef]);
 
   useEffect(() => {
     
@@ -66,7 +84,11 @@ export function useRecording (
         recorder.stop();
         console.log("stopped");
         console.log(recorder);
-      } 
+        console.log(blob);
+        // store blob to storage
+        // then
+        setBlob(null);
+      }
     }
 
   }, [localStreamAttributes]);

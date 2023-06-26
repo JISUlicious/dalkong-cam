@@ -8,6 +8,7 @@ import { addRemoteDevice, removeRemoteDevice, setLocalDevice, setLocalStream } f
 export interface DeviceDoc {
   deviceName: string,
   deviceType: string,
+  sessionId: number,
   offer?: RTCSessionDescriptionInit,
   answer?: RTCSessionDescriptionInit
 }

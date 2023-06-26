@@ -2,7 +2,7 @@
 const PIXEL_SCORE_THRESHOLD = 3;
 const IMAGE_SCORE_THRESHOLD = 50;
 
-export async function detectMotion (
+export function detectMotion (
   context: CanvasRenderingContext2D | null | undefined, 
   ) {
   if (context) {

@@ -28,16 +28,15 @@ export function Camera () {
   const dispatch = useConnectionDispatchContext();
   
   const {cameraId} = useParams();
+
   const streamRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
   const recorder = useMemo(() => {
     if (localStream) {
       console.log("setting mediaRecorder");
       const recorder = new MediaRecorder(localStream);
-      recorder.ondataavailable = (event) => {
-        console.log(event);
 
-      }
       return recorder;
     } 
     }, [localStream]);
@@ -68,8 +67,8 @@ export function Camera () {
       getDoc(doc(db, `users/${user.uid}/cameras/${cameraId}`))
         .then(doc => {
           const updatedDoc = doc.data();
-          updatedDoc!.updated = new Date()
-          updateItem(`users/${user.uid}/cameras/${cameraId}`, updatedDoc!)
+          updatedDoc!.sessionId = Date.now();
+          updateItem(`users/${user.uid}/cameras/${cameraId}`, updatedDoc!);
           dispatch(ConnectionActionCreator.setLocalDevice(doc as DeviceState));
         });
     }
@@ -111,6 +110,7 @@ export function Camera () {
 
   return (<div className="camera body-content">
     <VideoWithControls ref={streamRef} device={localDevice} muted={true}/>
+    <Canvas ref={canvasRef}/>
     <div className="remote-media">
       <ul>
         {Object.entries(remoteDevices).map(([id, viewer]) => {
@@ -130,6 +130,5 @@ export function Camera () {
         })}
       </ul>
     </div>
-    <Canvas ref={canvasRef}/>
   </div>);
 }

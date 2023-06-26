@@ -1,6 +1,6 @@
 import "../../common/styles/Viewer.scss";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { collection, doc, getDoc, onSnapshot, query } from "firebase/firestore";
 
 import { CameraItem } from "./CameraItem";
@@ -23,7 +23,17 @@ export function Viewer () {
 
   const {user} = useAuthContext();
   
-  const {localStream, localDevice, remoteDevices, connections} = useConnectionContext();
+  const {localStream, localDevice, remoteDevices} = useConnectionContext();
+
+  const sessions = useRef<Record<string, number | undefined>>();
+
+  useEffect(() => {
+    const sessionIds = {} as Record<string, number | undefined>;
+    Object.entries(remoteDevices).map(([id, device]) => {
+      sessionIds[id] = device.data()?.sessionId;
+    });
+    sessions.current = sessionIds;
+  }, [remoteDevices]);
 
   const dispatch = useConnectionDispatchContext();
 
@@ -67,10 +77,15 @@ export function Viewer () {
       const camerasQuery = query(collection(db, key));
       const unsubscribeCamerasCollection = onSnapshot(camerasQuery, async snapshot => {
         snapshot.docChanges().map(async (change) => {
-          if (["added", "modified"].includes(change.type)) {
+          if (change.type === "added") {
             dispatch(ConnectionActionCreator.addRemoteDevice(change.doc as DeviceState));
           } else if (change.type === "removed") {
             dispatch(ConnectionActionCreator.removeRemoteDevice(change.doc.id));
+          } else if (change.type === "modified") {
+            const docId = change.doc.id;
+            if (sessions.current?.[docId] !== change.doc.data().sessionId) {
+              dispatch(ConnectionActionCreator.addRemoteDevice(change.doc as DeviceState));
+            }
           } 
         });
       }, (error) => console.log(error));  
@@ -80,7 +95,6 @@ export function Viewer () {
   }, [user, localDevice, !!localStream]);
 
   return (<div className="viewer body-content">
-    <button onClick={() => console.log(connections)}>b</button>
     <h1>Viewer</h1>
     {localDevice?.data()?.deviceName}
     <div className="list-cameras-wrapper">
