@@ -1,4 +1,4 @@
-import { RefObject, useEffect, useRef } from "react";
+import { Dispatch, RefObject, SetStateAction, useEffect, useRef, useState } from "react";
 import { detectMotion } from "../../common/functions/detectMotion";
 import { DocumentReference } from "firebase/firestore";
 
@@ -6,8 +6,9 @@ export function useRecording (
   videoRef: RefObject<HTMLVideoElement>,
   recorder: MediaRecorder | undefined,
   onRecorderStop: (blob: Blob[]) => Promise<DocumentReference<object>> | undefined
-  ) {
+  ): [boolean, Dispatch<SetStateAction<boolean>>] {
   const recordedData = useRef<Blob[]>([]);
+  const [state, setState] = useState<boolean>(false);
   const lastMotionDetectedTime = useRef<number>(0);
   
   const canvas1 = document.createElement("canvas");
@@ -63,12 +64,14 @@ export function useRecording (
 
         if (timeSinceLastMotion < 3000 && recorder?.state === "inactive") {
           recorder.start();
+          setState(true);
         } else if (timeSinceLastMotion > 3000 && recorder?.state === "recording") {
 
           stopRecording(recorder)
             .then(() => onRecorderStop(recordedData.current))
             .then(res => {
               recordedData.current = [];
+              setState(false);
             });
 
         }
@@ -79,5 +82,5 @@ export function useRecording (
       };
     }
   }, [videoRef, recorder]);
-
+  return [state, setState];
 }

@@ -44,6 +44,7 @@ video {
   display: flex;
   justify-content: left;
   flex-grow: 1;
+  
 }
 
 .video-item {
@@ -71,6 +72,15 @@ video {
   .icon {
     color: $ternary-light-color;
   }
+}
+
+.no-border-button {
+  border: none;
+}
+
+.recording {
+  height: inherit;
+  color: red;
 }
 
 select {

@@ -9,6 +9,7 @@ export interface DeviceDoc {
   deviceName: string,
   deviceType: string,
   sessionId: number,
+  isRecording?: boolean,
   offer?: RTCSessionDescriptionInit,
   answer?: RTCSessionDescriptionInit
 }
@@ -57,7 +58,7 @@ export type Action = {type: "setLocalDevice", device: DeviceState | null}
   | {type: "removeSubscriptions", id: string}
   | {type: "toggleMic"}
   | {type: "toggleSpeaker", id: string}
-  | {type: "setIsRecording", isRecording: boolean, lastMotionDetected: Date | null, id?: string}
+  | {type: "updateRemoteDevice", device: DeviceState}
   
 
 const initialState = {
@@ -95,12 +96,7 @@ export const ConnectionActionCreator = {
   removeSubscription: (id: string): Action => ({type: "removeSubscriptions", id: id}),
   toggleMic: (): Action => ({type: "toggleMic"}),
   toggleSpeaker: (id: string): Action => ({type: "toggleSpeaker", id: id}),
-  setIsRecording: (isRecording: boolean, lastMotionDetected: Date | null, id?: string): Action => {
-    if (id) {
-      return ({type: "setIsRecording", isRecording: isRecording, lastMotionDetected: lastMotionDetected, id: id});
-    }
-    return ({type: "setIsRecording", isRecording: isRecording, lastMotionDetected: lastMotionDetected});
-  }
+  updateRemoteDevice: (doc: DeviceState): Action => ({type: "updateRemoteDevice", device: doc})
 };
 
 export function connectionReducer (state: ConnectionState, action: Action): ConnectionState {
@@ -245,22 +241,12 @@ export function connectionReducer (state: ConnectionState, action: Action): Conn
         remoteStreamsAttributes: newRemoteStreamsAttributes
       };
     }
-    case "setIsRecording": {
-      // from viewer
-      if (action.id) { 
-        // TODO: read camera doc isRecording and setit to context value
-      }
-      // from camera
-      // TODO: set value isRecording on document 
-      const lastMotionDetected = action.lastMotionDetected 
-        ? action.lastMotionDetected 
-        : state.localStreamAttributes.lastMotionDetected;
+    case "updateRemoteDevice": {
       return {
         ...state,
-        localStreamAttributes: {
-          ...state.localStreamAttributes,
-          isRecording: action.isRecording,
-          lastMotionDetected: lastMotionDetected
+        remoteDevices: {
+          ...state.remoteDevices,
+          [action.device.id]: action.device
         }
       };
     }
