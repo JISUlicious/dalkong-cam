@@ -62,8 +62,21 @@ export function Camera () {
     }
   }, [user, localDevice])
 
-  useRecording(videoRef, recorder, onRecorderStop);
+  const [isRecording, setIsRecording] = useRecording(videoRef, recorder, onRecorderStop);
 
+  useEffect(() => {
+    if (user && localDevice) {
+      getDoc(doc(db, `users/${user.uid}/cameras/${localDevice.id}`))
+        .then(doc => {
+          const updatedDoc = doc.data()!;
+          updatedDoc.isRecording = isRecording;
+          return updateItem(`users/${user.uid}/cameras/${localDevice.id}`, updatedDoc);
+        })
+        .then(() => getDoc(doc(db, `users/${user.uid}/cameras/${cameraId}`)))
+        .then(doc => dispatch(ConnectionActionCreator.setLocalDevice(doc as DeviceState)));
+    }
+  }, [user, !!localDevice, isRecording]);
+  
   useEffect(() => {
     if (localStream) {
       if (!videoRef.current || !localStream)
@@ -129,8 +142,6 @@ export function Camera () {
 
   return (<div className="camera body-content">
     <VideoWithControls ref={videoRef} device={localDevice} muted={true}/>
-    <Canvas ref={canvasRef1} />
-    <Canvas ref={canvasRef2} />
     <div className="remote-media">
       <ul>
         {Object.entries(remoteDevices).map(([id, viewer]) => {

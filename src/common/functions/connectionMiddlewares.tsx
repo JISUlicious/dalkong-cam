@@ -67,9 +67,6 @@ export const addRemoteDevice = (api: MiddlewareAPI<ConnectionState>) =>
 async (action: Action) => {
   if (
     action.type === "addRemoteDevice" 
-    // && (
-    //   !Object.keys(api.getState().remoteDevices).includes(action.device.id)
-    //   || api.getState().remoteDevices[action.device.id].data()?.sessionId !== action.device.data()?.sessionId) 
     ) {
     
     const localDevice = api.getState().localDevice;
