@@ -11,12 +11,13 @@ import {
   QueryFieldFilterConstraint,
   updateDoc,
   deleteField,
+  QueryOrderByConstraint,
 } from "firebase/firestore";
 
 import { db, storage } from "./firebaseInit";
 import { ref, uploadBytes } from "firebase/storage";
 
-export function getItem(key: string, filter?: QueryFieldFilterConstraint): Promise<QuerySnapshot<DocumentData>> {
+export function getItem(key: string, filter?: QueryFieldFilterConstraint | QueryOrderByConstraint): Promise<QuerySnapshot<DocumentData>> {
   if (filter) {
     return getDocs(query(collection(db, key), filter))
     .then(res => {

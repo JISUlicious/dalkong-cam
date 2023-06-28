@@ -5,7 +5,7 @@ import {
   DeviceState, 
   useConnectionContext
 } from "../../common/contexts/ConnectionContext";
-import { VideoWithControls } from "../../common/components/VideoWithControls";
+import { StreamWithControls } from "../../common/components/StreamWithControls";
 
 
 interface CameraItemProps {
@@ -29,5 +29,5 @@ export function CameraItem({camera}: CameraItemProps) {
   function onClick () {
     // navigate(`/viewer/${localDevice?.id}/camera/${camera.id}`); // TODO: make route
   }
-  return (<VideoWithControls ref={streamRef} device={camera} />);
+  return (<StreamWithControls ref={streamRef} device={camera} />);
 }
