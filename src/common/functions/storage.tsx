@@ -12,23 +12,20 @@ import {
   updateDoc,
   deleteField,
   QueryOrderByConstraint,
+  QueryConstraint,
 } from "firebase/firestore";
 
 import { db, storage } from "./firebaseInit";
 import { ref, uploadBytes } from "firebase/storage";
 
-export function getItem(key: string, filter?: QueryFieldFilterConstraint | QueryOrderByConstraint): Promise<QuerySnapshot<DocumentData>> {
-  if (filter) {
-    return getDocs(query(collection(db, key), filter))
+export function getItem(
+  key: string, 
+  ...queryConstraints: QueryConstraint[]
+  ): Promise<QuerySnapshot<DocumentData>> {
+  return getDocs(query(collection(db, key), ...queryConstraints))
     .then(res => {
       return res;
     });  
-  } else {
-    return getDocs(query(collection(db, key)))
-      .then(res => {
-        return res;
-      });
-  }
 }
 
 export function addItem(key: string, value: object, id: string | null = null) {
