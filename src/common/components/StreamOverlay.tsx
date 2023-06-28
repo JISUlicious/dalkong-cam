@@ -14,7 +14,7 @@ function onClick (event: MouseEvent) {
   event.stopPropagation();
 }
 
-export function VideoOverlay({device}: VideoOverlayProps) {
+export function StreamOverlay({device}: VideoOverlayProps) {
   return (<div className="video-overlay" onClick={onClick}>
     <Controls device={device}/>
     {device?.data()?.isRecording 

@@ -18,8 +18,7 @@ import { db } from "../../common/functions/firebaseInit";
 import { getMedia } from "../../common/functions/getMedia";
 import { useParams } from "react-router-dom";
 import { addItem, getItem, removeItem, removeItems, storeFile, updateItem } from "../../common/functions/storage";
-import { VideoWithControls } from "../../common/components/VideoWithControls";
-import { Canvas } from "./Canvas";
+import { StreamWithControls } from "../../common/components/StreamWithControls";
 import { useRecording } from "../hooks/useRecording";
 
 export function Camera () {
@@ -30,8 +29,6 @@ export function Camera () {
   const {cameraId} = useParams();
 
   const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef1 = useRef<HTMLCanvasElement>(null);
-  const canvasRef2 = useRef<HTMLCanvasElement>(null);
 
   const recorder = useMemo(() => {
     if (localStream) {
@@ -54,9 +51,9 @@ export function Camera () {
           key, 
           {
             path: result.ref.parent?.fullPath, 
-            deviceName: localDevice.data()?.deviceName
-          }, 
-          result.ref.name
+            deviceName: localDevice.data()?.deviceName,
+            timestamp: savedVideoId
+          }
           );
       });
     }
@@ -141,7 +138,7 @@ export function Camera () {
   }, [user, localDevice, !!localStream]);
 
   return (<div className="camera body-content">
-    <VideoWithControls ref={videoRef} device={localDevice} muted={true}/>
+    <StreamWithControls ref={videoRef} device={localDevice} muted={true}/>
     <div className="remote-media">
       <ul>
         {Object.entries(remoteDevices).map(([id, viewer]) => {
