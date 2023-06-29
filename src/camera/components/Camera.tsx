@@ -52,7 +52,8 @@ export function Camera () {
           {
             path: result.ref.parent?.fullPath, 
             deviceName: localDevice.data()?.deviceName,
-            timestamp: savedVideoId
+            timestamp: savedVideoId,
+            deviceId: localDevice.id
           }
           );
       });

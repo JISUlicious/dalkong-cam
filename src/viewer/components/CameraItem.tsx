@@ -1,11 +1,13 @@
-import React, { useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { 
   DeviceState, 
   useConnectionContext
 } from "../../common/contexts/ConnectionContext";
 import { StreamWithControls } from "../../common/components/StreamWithControls";
+import { useSavedVideos } from "../../common/hooks/useSavedVideos";
+import { orderBy, where } from "firebase/firestore";
+import { VideosList } from "../../common/components/VideosList";
 
 
 interface CameraItemProps {
@@ -15,9 +17,37 @@ interface CameraItemProps {
 export function CameraItem({camera}: CameraItemProps) {
   
   const {remoteStreams} = useConnectionContext();
-  const navigate = useNavigate();
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  
+  const [videosData, setVideosData] = useSavedVideos(
+    isFullscreen,
+    where("deviceId", "==", camera.id), 
+    orderBy("timestamp", "desc")
+    );
 
   const streamRef = useRef<HTMLVideoElement>(null);
+  const cameraItemRef = useRef<HTMLDivElement>(null);
+  const doc = useRef(document);
+  
+  const onClickStream = useCallback((event: MouseEvent) => {
+    if (isFullscreen) {
+      doc.current.exitFullscreen();
+      setIsFullscreen(false);
+    } else {
+      cameraItemRef.current?.requestFullscreen();
+      setIsFullscreen(true);
+    }
+  }, [isFullscreen]);
+
+  useEffect(() => {
+    if (cameraItemRef.current) {
+      cameraItemRef.current.addEventListener("click", onClickStream);
+      return () => {
+        cameraItemRef.current?.removeEventListener("click", onClickStream);
+      }
+    }
+  }, [cameraItemRef, isFullscreen]);
+
   useEffect(() => {
     if (remoteStreams?.[camera?.id]) {
       if (!streamRef.current || !remoteStreams?.[camera?.id])
@@ -26,8 +56,8 @@ export function CameraItem({camera}: CameraItemProps) {
     }
   }, [remoteStreams?.[camera?.id]]);
   
-  function onClick () {
-    // navigate(`/viewer/${localDevice?.id}/camera/${camera.id}`); // TODO: make route
-  }
-  return (<StreamWithControls ref={streamRef} device={camera} />);
+  return (<div className={`camera-item ${isFullscreen ? "fullscreen" : ""}`} ref={cameraItemRef}>
+    <StreamWithControls ref={streamRef} device={camera} />
+    { isFullscreen ? <VideosList videos={videosData} /> : null }
+  </div>);
 }
