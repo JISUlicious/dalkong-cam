@@ -1,9 +1,9 @@
 import "../../common/styles/Camera.scss";
 
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
-import { DocumentData, DocumentReference, collection, doc, getDoc, onSnapshot, query } from "firebase/firestore";
+import { DocumentData, DocumentReference, collection, doc, getDoc, onSnapshot, orderBy, query, where } from "firebase/firestore";
 
-import { VideoItem } from "../../viewer/components/VideoItem";
+import { VideoItem } from "../../common/components/VideoItem";
 import { AudioItem } from "./AudioItem";
 
 import { useAuthContext } from "../../common/contexts/AuthContext";
@@ -20,6 +20,8 @@ import { useParams } from "react-router-dom";
 import { addItem, getItem, removeItem, removeItems, storeFile, updateItem } from "../../common/functions/storage";
 import { StreamWithControls } from "../../common/components/StreamWithControls";
 import { useRecording } from "../hooks/useRecording";
+import { VideosList } from "../../common/components/VideosList";
+import { useSavedVideos } from "../../common/hooks/useSavedVideos";
 
 export function Camera () {
   const {user} = useAuthContext();
@@ -36,8 +38,6 @@ export function Camera () {
       return recorder;
     } 
     }, [localStream]);
-  
-  const savedTimes = ["2023-02-01 12:00:00", "2023-02-01 12:05:00", "2023-02-01 12:10:00", "a", "ddd", "aaa", "g"];
   
   const onRecorderStop = useCallback((blob: Blob[]) => {
     if (user && localDevice) {
@@ -138,6 +138,12 @@ export function Camera () {
     }
   }, [user, !!localDevice, !!localStream]);
 
+  const [videosData, setVideosData] = useSavedVideos(
+    null,
+    where("deviceId", "==", cameraId), 
+    orderBy("timestamp", "desc")
+    );
+    
   return (<div className="camera body-content">
     <StreamWithControls ref={videoRef} device={localDevice} muted={true}/>
     <div className="remote-media">
@@ -151,13 +157,7 @@ export function Camera () {
     </div>
     <div className="saved-videos local">
       list of videos
-      <ul>
-        {savedTimes.map((time, i) => {
-          return (<li key={i}>
-            <VideoItem title={time} url={`/saved-video/${time}`} />
-          </li>);
-        })}
-      </ul>
+      <VideosList videos={videosData} />
     </div>
   </div>);
 }

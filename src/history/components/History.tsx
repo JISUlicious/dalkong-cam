@@ -4,7 +4,7 @@ import { useSavedVideos } from "../../common/hooks/useSavedVideos";
 import { orderBy } from "firebase/firestore";
 
 export function History () {
-  const [videosData, setVideosData] = useSavedVideos(orderBy("timestamp", "desc"));
+  const [videosData, setVideosData] = useSavedVideos(null, orderBy("timestamp", "desc"));
 
   return <div className="history body-content">
     <VideosList videos={videosData} />
