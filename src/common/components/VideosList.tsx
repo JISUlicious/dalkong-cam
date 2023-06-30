@@ -1,5 +1,5 @@
 import React from "react";
-import { VideoItem } from "../../viewer/components/VideoItem";
+import { VideoItem } from "./VideoItem";
 
 export interface VideosData {
   timestamp: number,

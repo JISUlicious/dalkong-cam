@@ -12,7 +12,10 @@ import {
 import { addItem } from "../../common/functions/storage";
 
 export function CreateViewer () {
-  const [input, setInput] = useState("");
+  const localValue = localStorage.getItem("viewerDeviceName");
+  const initialValue = localValue ? localValue : "";
+
+  const [input, setInput] = useState(initialValue);
   const {user} = useAuthContext();
   const dispatch = useConnectionDispatchContext();
   const navigate = useNavigate();
@@ -43,7 +46,7 @@ export function CreateViewer () {
     <h1>CreateViewer</h1>
     <form onSubmit={onSubmit}>
       <label>
-        <input onChange={onChange} placeholder="Viewer Name" required />
+        <input onChange={onChange} value={input} placeholder="Viewer Name" required />
       </label>
       <button type="submit">
         Submit
