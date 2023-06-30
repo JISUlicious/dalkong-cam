@@ -19,7 +19,9 @@ export function useRecording (
       recorder.onstop = resolve;
       recorder.onerror = event => reject(event.type);
     });
+    console.log("recording stop");
     recorder.stop();
+
 
     return stopped;
   }
@@ -33,12 +35,12 @@ export function useRecording (
 
     if (videoRef.current) {
       const lastCaptureContext = canvas1.getContext('2d')!;
-      const compositeContext = canvas2.getContext('2d')!;
+      const compositeContext = canvas2.getContext('2d', {willReadFrequently: true})!;
       
       const captureInterval = 100;
       const width = 64;
       const height = 48;
-      
+      const recordingBufferTime = 7000;
       canvas1.width = width;
       canvas1.height = height;
       canvas2.width = width;
@@ -62,10 +64,11 @@ export function useRecording (
         const date = Date.now(); 
         const timeSinceLastMotion = date - lastMotionDetectedTime.current;
 
-        if (timeSinceLastMotion < 3000 && recorder?.state === "inactive") {
+        if (timeSinceLastMotion < recordingBufferTime && recorder?.state === "inactive") {
           recorder.start();
+          console.log("recording start");
           setState(true);
-        } else if (timeSinceLastMotion > 3000 && recorder?.state === "recording") {
+        } else if (timeSinceLastMotion > recordingBufferTime && recorder?.state === "recording") {
 
           stopRecording(recorder)
             .then(() => onRecorderStop(recordedData.current))

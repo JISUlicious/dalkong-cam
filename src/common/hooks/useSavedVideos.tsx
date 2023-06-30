@@ -39,7 +39,7 @@ export function useSavedVideos (
           const docData = change.doc.data();
           if (change.type === "added") {
             if (!videosData[docData.timestamp]) {
-              setVideosData(prev => ({...prev, [docData.timestamp]: docData as VideosData}));
+              setVideosData(prev => ({[docData.timestamp]: docData as VideosData, ...prev}));
               getDownloadURL(ref(storage, docData.path+`/${docData.timestamp}`))
               .then(url => {
                 setVideosData(prev => ({...prev, [docData.timestamp]: {...docData, url: url}}));
