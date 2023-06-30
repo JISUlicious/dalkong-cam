@@ -136,7 +136,7 @@ export function Camera () {
         return (() => unsubscribeViewersCollection());
       }
     }
-  }, [user, localDevice, !!localStream]);
+  }, [user, !!localDevice, !!localStream]);
 
   return (<div className="camera body-content">
     <StreamWithControls ref={videoRef} device={localDevice} muted={true}/>

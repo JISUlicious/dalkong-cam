@@ -3,7 +3,7 @@ import { DocumentSnapshot, Unsubscribe } from "firebase/firestore";
 
 import useMiddlewareReducer from "../hooks/useReducerWithMiddleware";
 
-import { addRemoteDevice, removeRemoteDevice, setLocalDevice, setLocalStream } from "../functions/connectionMiddlewares";
+import { addRemoteDevice, logger, removeRemoteDevice, setLocalDevice, setLocalStream } from "../functions/connectionMiddlewares";
 
 export interface DeviceDoc {
   deviceName: string,
@@ -262,6 +262,7 @@ export function ConnectionProvider ({children}: PropsWithChildren) {
       setLocalDevice,
       addRemoteDevice,
       removeRemoteDevice,
+      
     ]);
   return (<ConnectionContext.Provider value={state}>
     <ConnectionDispatchContext.Provider value={dispatch}>
