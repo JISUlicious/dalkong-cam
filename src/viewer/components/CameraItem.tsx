@@ -20,9 +20,8 @@ export function CameraItem({camera}: CameraItemProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   
   const [videosData, setVideosData] = useSavedVideos(
-    isFullscreen,
     where("deviceId", "==", camera.id), 
-    orderBy("timestamp", "desc")
+    orderBy("timestamp")
     );
 
   const streamRef = useRef<HTMLVideoElement>(null);
