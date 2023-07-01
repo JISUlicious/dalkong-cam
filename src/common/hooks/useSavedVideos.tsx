@@ -1,8 +1,7 @@
-import { Dispatch, MutableRefObject, useEffect, useRef, useState } from "react";
+import { Dispatch, useEffect, useRef, useState } from "react";
 import { VideosData } from "../components/VideosList";
 import { useAuthContext } from "../contexts/AuthContext";
-import { getItem } from "../functions/storage";
-import { DocumentData, QueryConstraint, collection, onSnapshot, query } from "firebase/firestore";
+import { QueryConstraint, collection, onSnapshot, query } from "firebase/firestore";
 import { getDownloadURL, ref } from "firebase/storage";
 import { db, storage } from "../functions/firebaseInit";
 
