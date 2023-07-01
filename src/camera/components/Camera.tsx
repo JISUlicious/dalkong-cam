@@ -139,9 +139,8 @@ export function Camera () {
   }, [user, !!localDevice, !!localStream]);
 
   const [videosData, setVideosData] = useSavedVideos(
-    null,
     where("deviceId", "==", cameraId), 
-    orderBy("timestamp", "desc")
+    orderBy("timestamp")
     );
     
   return (<div className="camera body-content">
