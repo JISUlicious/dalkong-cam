@@ -2,8 +2,7 @@ import { Dispatch, useEffect, useRef, useState } from "react";
 import { VideosData } from "../components/VideosList";
 import { useAuthContext } from "../contexts/AuthContext";
 import { QueryConstraint, collection, onSnapshot, query } from "firebase/firestore";
-import { getDownloadURL, ref } from "firebase/storage";
-import { db, storage } from "../functions/firebaseInit";
+import { db } from "../functions/firebaseInit";
 
 
 export function useSavedVideos (
@@ -32,17 +31,6 @@ export function useSavedVideos (
                 ...videosDataRef.current,
               };
               setVideosData(videosDataRef.current);
-              getDownloadURL(ref(storage, docData.path+`/${docData.timestamp}`))
-                .then(url => {
-                  videosDataRef.current = {
-                    ...videosDataRef.current,
-                    [docData.timestamp]: {
-                      ...videosDataRef.current[docData.timestamp], 
-                      url: url
-                    }, 
-                  };
-                  setVideosData(videosDataRef.current);
-                });
             }
           }
         });

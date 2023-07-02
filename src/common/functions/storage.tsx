@@ -8,10 +8,8 @@ import {
   QuerySnapshot,
   DocumentData,
   deleteDoc,
-  QueryFieldFilterConstraint,
   updateDoc,
   deleteField,
-  QueryOrderByConstraint,
   QueryConstraint,
 } from "firebase/firestore";
 
@@ -54,6 +52,6 @@ export function removeField(key: string, field: string) {
 
 // TODO: export function storeFile
 export function storeFile(key: string, file: Blob) {
-  
   return uploadBytes(ref(storage, key), file);
 }
+

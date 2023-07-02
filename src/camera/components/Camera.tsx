@@ -1,9 +1,8 @@
 import "../../common/styles/Camera.scss";
 
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
-import { DocumentData, DocumentReference, collection, doc, getDoc, onSnapshot, orderBy, query, where } from "firebase/firestore";
+import { collection, doc, getDoc, onSnapshot, orderBy, query, where } from "firebase/firestore";
 
-import { VideoItem } from "../../common/components/VideoItem";
 import { AudioItem } from "./AudioItem";
 
 import { useAuthContext } from "../../common/contexts/AuthContext";
@@ -14,7 +13,7 @@ import {
   useConnectionDispatchContext
 } from "../../common/contexts/ConnectionContext";
 
-import { db } from "../../common/functions/firebaseInit";
+import { db, storage } from "../../common/functions/firebaseInit";
 import { getMedia } from "../../common/functions/getMedia";
 import { useParams } from "react-router-dom";
 import { addItem, getItem, removeItem, removeItems, storeFile, updateItem } from "../../common/functions/storage";
@@ -22,6 +21,7 @@ import { StreamWithControls } from "../../common/components/StreamWithControls";
 import { useRecording } from "../hooks/useRecording";
 import { VideosList } from "../../common/components/VideosList";
 import { useSavedVideos } from "../../common/hooks/useSavedVideos";
+import { getDownloadURL, ref } from "firebase/storage";
 
 export function Camera () {
   const {user} = useAuthContext();
@@ -44,19 +44,26 @@ export function Camera () {
       const savedVideoId = Date.now();
       const key = `savedVideos/${user.uid}/${localDevice.id}/${savedVideoId}`;
       const recordedBlob = new Blob(blob, { type: "video/webm" });
-      return storeFile(key, recordedBlob).then(
-        (result): Promise<DocumentReference<object>> | Promise<DocumentReference<DocumentData>> => {
-        const key = `users/${user.uid}/savedVideos`;
-        return addItem(
-          key, 
-          {
-            path: result.ref.parent?.fullPath, 
+      storeFile(key, recordedBlob)
+        .then((result) => {
+          console.log(result);
+          return Promise.all([getDownloadURL(ref(storage, result.ref.fullPath)), result]);
+        })
+        .then(([url, result]) => {
+          console.log(url);
+          const key = `users/${user.uid}/savedVideos`;
+          const data = {
+            fullPath: result.ref.fullPath,
             deviceName: localDevice.data()?.deviceName,
             timestamp: savedVideoId,
-            deviceId: localDevice.id
-          }
+            deviceId: localDevice.id,
+            url: url
+          };
+          addItem(
+            key, 
+            data
           );
-      });
+        });
     }
   }, [user, localDevice])
 

@@ -1,11 +1,10 @@
 import { Dispatch, RefObject, SetStateAction, useEffect, useRef, useState } from "react";
 import { detectMotion } from "../../common/functions/detectMotion";
-import { DocumentReference } from "firebase/firestore";
 
 export function useRecording (
   videoRef: RefObject<HTMLVideoElement>,
   recorder: MediaRecorder | undefined,
-  onRecorderStop: (blob: Blob[]) => Promise<DocumentReference<object>> | undefined
+  onRecorderStop: (blob: Blob[]) => any
   ): [boolean, Dispatch<SetStateAction<boolean>>] {
   const recordedData = useRef<Blob[]>([]);
   const [state, setState] = useState<boolean>(false);
@@ -22,7 +21,6 @@ export function useRecording (
     console.log("recording stop");
     recorder.stop();
 
-
     return stopped;
   }
   
@@ -34,7 +32,7 @@ export function useRecording (
     }
 
     if (videoRef.current) {
-      const lastCaptureContext = canvas1.getContext('2d')!;
+      const lastCaptureContext = canvas1.getContext('2d', {willReadFrequently: true})!;
       const compositeContext = canvas2.getContext('2d', {willReadFrequently: true})!;
       
       const captureInterval = 100;
