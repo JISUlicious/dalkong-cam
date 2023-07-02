@@ -4,7 +4,7 @@ import { detectMotion } from "../../common/functions/detectMotion";
 export function useRecording (
   videoRef: RefObject<HTMLVideoElement>,
   recorder: MediaRecorder | undefined,
-  onRecorderStop: (blob: Blob[]) => any
+  onRecorderStop: (blob: Blob[]) => Promise<any>
   ): [boolean, Dispatch<SetStateAction<boolean>>] {
   const recordedData = useRef<Blob[]>([]);
   const [state, setState] = useState<boolean>(false);
@@ -67,14 +67,12 @@ export function useRecording (
           console.log("recording start");
           setState(true);
         } else if (timeSinceLastMotion > recordingBufferTime && recorder?.state === "recording") {
-
           stopRecording(recorder)
             .then(() => onRecorderStop(recordedData.current))
-            .then(res => {
+            .finally(() => {
               recordedData.current = [];
               setState(false);
             });
-
         }
       }, captureInterval);
       return () => {

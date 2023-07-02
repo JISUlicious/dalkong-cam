@@ -5,9 +5,9 @@ import {
   useConnectionContext
 } from "../../common/contexts/ConnectionContext";
 import { StreamWithControls } from "../../common/components/StreamWithControls";
-import { useSavedVideos } from "../../common/hooks/useSavedVideos";
-import { orderBy, where } from "firebase/firestore";
+import { where } from "firebase/firestore";
 import { VideosList } from "../../common/components/VideosList";
+import { useTimeOrderedVideos } from "../../common/hooks/useTimeOrderedVideos";
 
 
 interface CameraItemProps {
@@ -19,10 +19,10 @@ export function CameraItem({camera}: CameraItemProps) {
   const {remoteStreams} = useConnectionContext();
   const [isFullscreen, setIsFullscreen] = useState(false);
   
-  const [videosData, setVideosData] = useSavedVideos(
+  const videosData = useTimeOrderedVideos(
     where("deviceId", "==", camera.id), 
-    orderBy("timestamp")
     );
+  console.log(videosData);
 
   const streamRef = useRef<HTMLVideoElement>(null);
   const cameraItemRef = useRef<HTMLDivElement>(null);

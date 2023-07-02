@@ -1,7 +1,7 @@
 import "../../common/styles/Camera.scss";
 
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
-import { collection, doc, getDoc, onSnapshot, orderBy, query, where } from "firebase/firestore";
+import { collection, doc, getDoc, onSnapshot, query, where } from "firebase/firestore";
 
 import { AudioItem } from "./AudioItem";
 
@@ -20,8 +20,8 @@ import { addItem, getItem, removeItem, removeItems, storeFile, updateItem } from
 import { StreamWithControls } from "../../common/components/StreamWithControls";
 import { useRecording } from "../hooks/useRecording";
 import { VideosList } from "../../common/components/VideosList";
-import { useSavedVideos } from "../../common/hooks/useSavedVideos";
-import { getDownloadURL, ref } from "firebase/storage";
+import { UploadResult, getDownloadURL, ref } from "firebase/storage";
+import { useTimeOrderedVideos } from "../../common/hooks/useTimeOrderedVideos";
 
 export function Camera () {
   const {user} = useAuthContext();
@@ -42,12 +42,11 @@ export function Camera () {
   const onRecorderStop = useCallback((blob: Blob[]) => {
     if (user && localDevice) {
       const savedVideoId = Date.now();
-      const key = `savedVideos/${user.uid}/${localDevice.id}/${savedVideoId}`;
+      const key = `savedVideos/${user.uid}/${localDevice.id}/${savedVideoId}.webm`;
       const recordedBlob = new Blob(blob, { type: "video/webm" });
-      storeFile(key, recordedBlob)
-        .then((result) => {
-          return Promise.all([getDownloadURL(ref(storage, result.ref.fullPath)), result]);
-        })
+      return storeFile(key, recordedBlob)
+        .then(result => getDownloadURL(ref(storage, result.ref.fullPath))
+          .then(url => [url, result] as [string, UploadResult]))
         .then(([url, result]) => {
           const key = `users/${user.uid}/savedVideos`;
           const data = {
@@ -57,8 +56,10 @@ export function Camera () {
             deviceId: localDevice.id,
             url: url
           };
-          addItem(key, data);
+          return addItem(key, data);
         });
+    } else {
+      return Promise.reject();
     }
   }, [user, localDevice])
 
@@ -140,9 +141,8 @@ export function Camera () {
     }
   }, [user, !!localDevice, !!localStream]);
 
-  const [videosData, setVideosData] = useSavedVideos(
+  const videosData = useTimeOrderedVideos(
     where("deviceId", "==", cameraId), 
-    orderBy("timestamp")
     );
     
   return (<div className="camera body-content">

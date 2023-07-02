@@ -2,21 +2,22 @@ import React from "react";
 import { VideoItem } from "./VideoItem";
 
 export interface VideosData {
-  timestamp: number,
-  path: string,
+  fullPath: string,
   deviceName: string,
+  timestamp: number,
+  deviceId: string,
   url: string
 }
 
 interface VideosListProps {
-  videos: Record<string, VideosData>
+  videos: VideosData[]
 }
 
 export function VideosList ({videos}: VideosListProps) {
 
   return <ul>
-  {Object.entries(videos).map(([id, data]) => {
-    return <li key={id}><VideoItem title={String(new Date(data.timestamp))} url={data.url} /></li>;
+  {videos.map((data) => {
+    return <li key={data.timestamp}><VideoItem title={String(new Date(data.timestamp))} url={data.url} /></li>;
   })}
 </ul>
 }
