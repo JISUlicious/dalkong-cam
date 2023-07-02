@@ -9,12 +9,12 @@ interface StreamWithControlsProps {
 
 export const StreamWithControls = forwardRef(function StreamWithControls (
   props: StreamWithControlsProps, 
-  streamRef: ForwardedRef<HTMLVideoElement> 
+  videoRef: ForwardedRef<HTMLVideoElement> 
   ) {
   const {device, muted} = props;
 
   return (<div className="stream-wrapper">
       <StreamOverlay device={device}/>
-      <video className="stream" ref={streamRef} autoPlay muted={muted} />
+      <video className="stream" ref={videoRef} autoPlay muted={muted} />
     </div>);  
 });
