@@ -1,10 +1,9 @@
 import React from "react";
 import { VideosList } from "../../common/components/VideosList";
-import { useSavedVideos } from "../../common/hooks/useSavedVideos";
-import { orderBy } from "firebase/firestore";
+import { useTimeOrderedVideos } from "../../common/hooks/useTimeOrderedVideos";
 
 export function History () {
-  const [videosData, setVideosData] = useSavedVideos(orderBy("timestamp"));
+  const videosData = useTimeOrderedVideos();
 
   return <div className="history body-content">
     <VideosList videos={videosData} />

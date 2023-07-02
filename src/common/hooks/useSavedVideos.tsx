@@ -1,4 +1,4 @@
-import { Dispatch, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { VideosData } from "../components/VideosList";
 import { useAuthContext } from "../contexts/AuthContext";
 import { QueryConstraint, collection, onSnapshot, query } from "firebase/firestore";
@@ -7,10 +7,7 @@ import { db } from "../functions/firebaseInit";
 
 export function useSavedVideos (
   ...queryConstraints: QueryConstraint[]
-  ): [
-  Record<string, VideosData>,
-  Dispatch<React.SetStateAction<Record<string, VideosData>>>
-] {
+  ): Record<string, VideosData> {
   const [videosData, setVideosData] = useState<Record<string, VideosData>>({});
   const videosDataRef = useRef(videosData);
   const {user} = useAuthContext();
@@ -25,19 +22,19 @@ export function useSavedVideos (
         snapshot.docChanges().map(async (change) => {
           const docData = change.doc.data();
           if (change.type === "added") {
-            if (!videosDataRef.current[docData.timestamp]) {
+            if (!videosDataRef.current[change.doc.id]) {
               videosDataRef.current = {
-                [docData.timestamp]: docData as VideosData,
+                [change.doc.id]: docData as VideosData,
                 ...videosDataRef.current,
               };
             }
           }
         });
         setVideosData(videosDataRef.current);
-      }, (error) => console.log(error));  
+      }, (error) => console.log(error));
       return () => unsubscribe();
     }
   }, [user]);
 
-  return [videosData, setVideosData];
+  return videosData;
 }

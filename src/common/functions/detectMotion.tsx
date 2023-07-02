@@ -32,11 +32,3 @@ export function detectMotion (
     return false;
   }
 }
-
-export function timer (time: number) {
-  return new Promise(function(resolve){
-      setTimeout(function(){
-          resolve(time);
-      }, time);
-  })
-}
