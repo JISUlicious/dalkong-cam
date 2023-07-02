@@ -30,10 +30,10 @@ export function useSavedVideos (
                 [docData.timestamp]: docData as VideosData,
                 ...videosDataRef.current,
               };
-              setVideosData(videosDataRef.current);
             }
           }
         });
+        setVideosData(videosDataRef.current);
       }, (error) => console.log(error));  
       return () => unsubscribe();
     }
