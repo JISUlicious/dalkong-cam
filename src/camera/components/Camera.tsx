@@ -46,11 +46,9 @@ export function Camera () {
       const recordedBlob = new Blob(blob, { type: "video/webm" });
       storeFile(key, recordedBlob)
         .then((result) => {
-          console.log(result);
           return Promise.all([getDownloadURL(ref(storage, result.ref.fullPath)), result]);
         })
         .then(([url, result]) => {
-          console.log(url);
           const key = `users/${user.uid}/savedVideos`;
           const data = {
             fullPath: result.ref.fullPath,
@@ -59,10 +57,7 @@ export function Camera () {
             deviceId: localDevice.id,
             url: url
           };
-          addItem(
-            key, 
-            data
-          );
+          addItem(key, data);
         });
     }
   }, [user, localDevice])
