@@ -15,9 +15,11 @@ interface VideosListProps {
 
 export function VideosList ({videos}: VideosListProps) {
 
-  return <ul>
-  {videos.map((data) => {
-    return <li key={data.timestamp}><VideoItem title={String(new Date(data.timestamp))} url={data.url} /></li>;
-  })}
-</ul>
+  return (<ul>
+    {videos.map((data) => {
+      return <li key={data.deviceId + data.timestamp}>
+        <VideoItem title={String(new Date(data.timestamp))} url={data.url} />
+      </li>;
+    })}
+  </ul>);
 }
