@@ -1,6 +1,6 @@
 import "../../common/styles/Camera.scss";
 
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { collection, doc, getDoc, onSnapshot, query, where } from "firebase/firestore";
 
 import { AudioItem } from "./AudioItem";
@@ -28,7 +28,7 @@ export function Camera () {
   const {user} = useAuthContext();
   const {localDevice, localStream, remoteDevices, connections} = useConnectionContext();
   const dispatch = useConnectionDispatchContext();
-  
+
   const {cameraId} = useParams();
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -40,10 +40,11 @@ export function Camera () {
     } 
     }, [localStream]);
 
-  const onRecorderStop = useCallback(async (blob: Blob[]) => {
+  const onRecorderStop = useCallback(async (blob: Blob[], recordingId: number) => {
     if (user && localDevice) {
-      const savedVideoId = Date.now();
-      const key = `savedVideos/${user.uid}/${localDevice.id}/${savedVideoId}.mp4`;
+      // const savedVideoId = Date.now();
+
+      const key = `savedVideos/${user.uid}/${localDevice.id}/${recordingId}.mp4`;
       const recordedBlob = new Blob(blob, { type: "video/webm" });
       const sourceBuffer = await recordedBlob.arrayBuffer();
       
@@ -53,12 +54,12 @@ export function Camera () {
       
       ffmpeg.FS(
         "writeFile", 
-        `${savedVideoId}.webm`, 
+        `${recordingId}.webm`, 
         new Uint8Array(sourceBuffer, 0, sourceBuffer.byteLength)
         );
       
-      await ffmpeg.run('-i', `${savedVideoId}.webm`, `${savedVideoId}.mp4`);
-      const output = ffmpeg.FS("readFile", `${savedVideoId}.mp4`);
+      await ffmpeg.run('-i', `${recordingId}.webm`, `${recordingId}.mp4`);
+      const output = ffmpeg.FS("readFile", `${recordingId}.mp4`);
 
       return storeFile(key, output)
         .then(result => getDownloadURL(ref(storage, result.ref.fullPath))
@@ -68,7 +69,7 @@ export function Camera () {
           const data = {
             fullPath: result.ref.fullPath,
             deviceName: localDevice.data()?.deviceName,
-            timestamp: savedVideoId,
+            timestamp: recordingId,
             deviceId: localDevice.id,
             url: url
           };
