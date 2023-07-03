@@ -4,10 +4,13 @@ import { detectMotion } from "../functions/detectMotion";
 export function useRecording (
   videoRef: RefObject<HTMLVideoElement>,
   recorder: MediaRecorder | undefined,
-  onRecorderStop: (blob: Blob[]) => Promise<any>
+  onRecorderStop: (blob: Blob[], recordingId: number) => Promise<any>
   ): boolean {
   const recordedData = useRef<Blob[]>([]);
-  const [state, setState] = useState<boolean>(false);
+  const [isRecording, setIsRecording] = useState<boolean>(false);
+
+  const recordingId = useRef<number>(0);
+
   const lastMotionDetectedTime = useRef<number>(0);
   
   const canvas1 = document.createElement("canvas");
@@ -65,13 +68,14 @@ export function useRecording (
         if (timeSinceLastMotion < recordingBufferTime && recorder?.state === "inactive") {
           recorder.start();
           console.log("recording start");
-          setState(true);
+          setIsRecording(true);
+          recordingId.current = lastMotionDetectedTime.current;
         } else if (timeSinceLastMotion > recordingBufferTime && recorder?.state === "recording") {
           stopRecording(recorder)
-            .then(() => onRecorderStop(recordedData.current))
+            .then(() => onRecorderStop(recordedData.current, recordingId.current))
             .finally(() => {
               recordedData.current = [];
-              setState(false);
+              setIsRecording(false);
             });
         }
       }, captureInterval);
@@ -81,5 +85,5 @@ export function useRecording (
       };
     }
   }, [videoRef, recorder]);
-  return state;
+  return isRecording;
 }
