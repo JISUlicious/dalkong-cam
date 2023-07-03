@@ -1,6 +1,6 @@
 import "../../common/styles/Camera.scss";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { collection, doc, getDoc, onSnapshot, query, where } from "firebase/firestore";
 
 import { AudioItem } from "./AudioItem";
@@ -42,8 +42,6 @@ export function Camera () {
 
   const onRecorderStop = useCallback(async (blob: Blob[], recordingId: number) => {
     if (user && localDevice) {
-      // const savedVideoId = Date.now();
-
       const key = `savedVideos/${user.uid}/${localDevice.id}/${recordingId}.mp4`;
       const recordedBlob = new Blob(blob, { type: "video/webm" });
       const sourceBuffer = await recordedBlob.arrayBuffer();
