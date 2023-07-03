@@ -39,7 +39,7 @@ export function Camera () {
     } 
     }, [localStream]);
   
-  const onRecorderStop = useCallback((blob: Blob[]) => {
+  const onRecorderStop = useCallback(async (blob: Blob[]) => {
     if (user && localDevice) {
       const savedVideoId = Date.now();
       const key = `savedVideos/${user.uid}/${localDevice.id}/${savedVideoId}.webm`;
@@ -63,7 +63,7 @@ export function Camera () {
     }
   }, [user, localDevice])
 
-  const [isRecording, setIsRecording] = useRecording(videoRef, recorder, onRecorderStop);
+  const isRecording = useRecording(videoRef, recorder, onRecorderStop);
 
   useEffect(() => {
     if (user && localDevice) {

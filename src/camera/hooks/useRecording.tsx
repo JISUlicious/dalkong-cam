@@ -1,11 +1,11 @@
-import { Dispatch, RefObject, SetStateAction, useEffect, useRef, useState } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 import { detectMotion } from "../../common/functions/detectMotion";
 
 export function useRecording (
   videoRef: RefObject<HTMLVideoElement>,
   recorder: MediaRecorder | undefined,
   onRecorderStop: (blob: Blob[]) => Promise<any>
-  ): [boolean, Dispatch<SetStateAction<boolean>>] {
+  ): boolean {
   const recordedData = useRef<Blob[]>([]);
   const [state, setState] = useState<boolean>(false);
   const lastMotionDetectedTime = useRef<number>(0);
@@ -81,5 +81,5 @@ export function useRecording (
       };
     }
   }, [videoRef, recorder]);
-  return [state, setState];
+  return state;
 }
