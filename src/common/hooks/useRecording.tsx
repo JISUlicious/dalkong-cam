@@ -1,5 +1,5 @@
 import { RefObject, useEffect, useRef, useState } from "react";
-import { detectMotion } from "../../common/functions/detectMotion";
+import { detectMotion } from "../functions/detectMotion";
 
 export function useRecording (
   videoRef: RefObject<HTMLVideoElement>,
