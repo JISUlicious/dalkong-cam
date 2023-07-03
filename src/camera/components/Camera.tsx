@@ -18,10 +18,11 @@ import { getMedia } from "../../common/functions/getMedia";
 import { useParams } from "react-router-dom";
 import { addItem, getItem, removeItem, removeItems, storeFile, updateItem } from "../../common/functions/storage";
 import { StreamWithControls } from "../../common/components/StreamWithControls";
-import { useRecording } from "../hooks/useRecording";
+import { useRecording } from "../../common/hooks/useRecording";
 import { VideosList } from "../../common/components/VideosList";
 import { UploadResult, getDownloadURL, ref } from "firebase/storage";
 import { useTimeOrderedVideos } from "../../common/hooks/useTimeOrderedVideos";
+import { createFFmpeg } from "@ffmpeg/ffmpeg";
 
 export function Camera () {
   const {user} = useAuthContext();
@@ -38,13 +39,28 @@ export function Camera () {
       return recorder;
     } 
     }, [localStream]);
-  
+
   const onRecorderStop = useCallback(async (blob: Blob[]) => {
     if (user && localDevice) {
       const savedVideoId = Date.now();
-      const key = `savedVideos/${user.uid}/${localDevice.id}/${savedVideoId}.webm`;
+      const key = `savedVideos/${user.uid}/${localDevice.id}/${savedVideoId}.mp4`;
       const recordedBlob = new Blob(blob, { type: "video/webm" });
-      return storeFile(key, recordedBlob)
+      const sourceBuffer = await recordedBlob.arrayBuffer();
+      
+      const ffmpeg = createFFmpeg();
+      
+      await ffmpeg.load();
+      
+      ffmpeg.FS(
+        "writeFile", 
+        `${savedVideoId}.webm`, 
+        new Uint8Array(sourceBuffer, 0, sourceBuffer.byteLength)
+        );
+      
+      await ffmpeg.run('-i', `${savedVideoId}.webm`, `${savedVideoId}.mp4`);
+      const output = ffmpeg.FS("readFile", `${savedVideoId}.mp4`);
+
+      return storeFile(key, output)
         .then(result => getDownloadURL(ref(storage, result.ref.fullPath))
           .then(url => [url, result] as [string, UploadResult]))
         .then(([url, result]) => {
