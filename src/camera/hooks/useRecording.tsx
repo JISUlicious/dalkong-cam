@@ -4,11 +4,13 @@ import { detectMotion } from "../../common/functions/detectMotion";
 export function useRecording (
   videoRef: RefObject<HTMLVideoElement>,
   recorder: MediaRecorder | undefined,
-  onRecorderStop: (blob: Blob[]) => Promise<any>
+  onRecorderStop: (blob: Blob[], duration: number) => Promise<any>
   ): boolean {
   const recordedData = useRef<Blob[]>([]);
   const [state, setState] = useState<boolean>(false);
   const lastMotionDetectedTime = useRef<number>(0);
+  const duration = useRef<number>(0); 
+  const recordStartTime = useRef<number>(0);
   
   const canvas1 = document.createElement("canvas");
   const canvas2 = document.createElement("canvas");
@@ -20,6 +22,7 @@ export function useRecording (
     });
     console.log("recording stop");
     recorder.stop();
+    duration.current = Date.now() - recordStartTime.current;
 
     return stopped;
   }
@@ -38,7 +41,7 @@ export function useRecording (
       const captureInterval = 100;
       const width = 64;
       const height = 48;
-      const recordingBufferTime = 7000;
+      const recordingBufferTime = 1000;
       canvas1.width = width;
       canvas1.height = height;
       canvas2.width = width;
@@ -66,9 +69,10 @@ export function useRecording (
           recorder.start();
           console.log("recording start");
           setState(true);
+          recordStartTime.current = Date.now();
         } else if (timeSinceLastMotion > recordingBufferTime && recorder?.state === "recording") {
           stopRecording(recorder)
-            .then(() => onRecorderStop(recordedData.current))
+            .then(() => onRecorderStop(recordedData.current, duration.current))
             .finally(() => {
               recordedData.current = [];
               setState(false);

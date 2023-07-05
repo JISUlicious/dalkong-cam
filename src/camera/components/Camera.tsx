@@ -39,11 +39,12 @@ export function Camera () {
     } 
     }, [localStream]);
   
-  const onRecorderStop = useCallback(async (blob: Blob[]) => {
+  const onRecorderStop = useCallback(async (blob: Blob[], duration: number) => {
     if (user && localDevice) {
       const savedVideoId = Date.now();
       const key = `savedVideos/${user.uid}/${localDevice.id}/${savedVideoId}.webm`;
       const recordedBlob = new Blob(blob, { type: "video/webm" });
+
       return storeFile(key, recordedBlob)
         .then(result => getDownloadURL(ref(storage, result.ref.fullPath))
           .then(url => [url, result] as [string, UploadResult]))
@@ -54,7 +55,8 @@ export function Camera () {
             deviceName: localDevice.data()?.deviceName,
             timestamp: savedVideoId,
             deviceId: localDevice.id,
-            url: url
+            url: url,
+            duration: duration
           };
           return addItem(key, data);
         });
@@ -63,7 +65,7 @@ export function Camera () {
     }
   }, [user, localDevice])
 
-  const isRecording = useRecording(videoRef, recorder, onRecorderStop);
+  const isRecording= useRecording(videoRef, recorder, onRecorderStop);
 
   useEffect(() => {
     if (user && localDevice) {

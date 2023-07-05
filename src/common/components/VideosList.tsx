@@ -6,7 +6,8 @@ export interface VideosData {
   deviceName: string,
   timestamp: number,
   deviceId: string,
-  url: string
+  url: string,
+  duration: number
 }
 
 interface VideosListProps {
@@ -18,7 +19,7 @@ export function VideosList ({videos}: VideosListProps) {
   return (<ul>
     {videos.map((data) => {
       return <li key={data.deviceId + data.timestamp}>
-        <VideoItem title={String(new Date(data.timestamp))} url={data.url} />
+        <VideoItem title={String(new Date(data.timestamp))} url={data.url} duration={data.duration} />
       </li>;
     })}
   </ul>);
