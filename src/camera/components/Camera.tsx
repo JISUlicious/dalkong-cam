@@ -42,8 +42,8 @@ export function Camera () {
   const onRecorderStop = useCallback(async (blob: Blob[]) => {
     if (user && localDevice) {
       const savedVideoId = Date.now();
-      const key = `savedVideos/${user.uid}/${localDevice.id}/${savedVideoId}.webm`;
-      const recordedBlob = new Blob(blob, { type: "video/webm" });
+      const key = `savedVideos/${user.uid}/${localDevice.id}/${savedVideoId}.mp4`;
+      const recordedBlob = new Blob(blob, { type: "video/mp4" });
       return storeFile(key, recordedBlob)
         .then(result => getDownloadURL(ref(storage, result.ref.fullPath))
           .then(url => [url, result] as [string, UploadResult]))
