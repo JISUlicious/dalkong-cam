@@ -1,5 +1,3 @@
-import "../../common/styles/Viewer.scss";
-
 import React, { useEffect, useRef } from "react";
 import { collection, doc, getDoc, onSnapshot, query } from "firebase/firestore";
 
