@@ -4,14 +4,18 @@ import { detectMotion } from "../../common/functions/detectMotion";
 export function useRecording (
   videoRef: RefObject<HTMLVideoElement>,
   recorder: MediaRecorder | undefined,
-  onRecorderStop: (blob: Blob[]) => Promise<any>
+  onRecorderStop: (blob: Blob[]) => Promise<any>,
+  canvasRef1: RefObject<HTMLCanvasElement>,
+  canvasRef2: RefObject<HTMLCanvasElement>,
   ): boolean {
   const recordedData = useRef<Blob[]>([]);
   const [state, setState] = useState<boolean>(false);
   const lastMotionDetectedTime = useRef<number>(0);
   
-  const canvas1 = document.createElement("canvas");
-  const canvas2 = document.createElement("canvas");
+  // const canvas1 = document.createElement("canvas");
+  // const canvas2 = document.createElement("canvas");
+  const canvas1 = canvasRef1.current;
+  const canvas2 = canvasRef2.current;
   
   function stopRecording (recorder: MediaRecorder) {
     const stopped = new Promise((resolve, reject) => {
@@ -31,9 +35,9 @@ export function useRecording (
       };
     }
 
-    if (videoRef.current) {
+    if (videoRef.current && canvas1 && canvas2) {
       const lastCaptureContext = canvas1.getContext('2d', {willReadFrequently: true})!;
-      const compositeContext = canvas2.getContext('2d', {willReadFrequently: true})!;
+      const currentCaptureContext = canvas2.getContext('2d', {willReadFrequently: true})!;
       
       const captureInterval = 100;
       const width = 64;
@@ -47,12 +51,9 @@ export function useRecording (
       lastCaptureContext.drawImage(videoRef.current, 0, 0, width, height);
 
       const interval = setInterval(async ()=>{
-        compositeContext.clearRect(0, 0, width, height);
-        compositeContext.putImageData(lastCaptureContext.getImageData(0, 0, width, height), 0, 0);
-        lastCaptureContext.drawImage(videoRef.current!, 0, 0, width, height);
-        compositeContext.drawImage(videoRef.current!, 0, 0, width, height);
+        currentCaptureContext.drawImage(videoRef.current!, 0, 0, width, height);
 
-        const motionDetected = detectMotion(compositeContext);
+        const motionDetected = detectMotion(lastCaptureContext, currentCaptureContext);
         
         if (motionDetected) {
           const motionDetectedTime = Date.now();
@@ -74,9 +75,13 @@ export function useRecording (
               setState(false);
             });
         }
+
+        lastCaptureContext.clearRect(0, 0, width, height);
+        lastCaptureContext.putImageData(currentCaptureContext.getImageData(0, 0, width, height), 0, 0);
+        
       }, captureInterval);
       return () => {
-        compositeContext.clearRect(0, 0, width, height);
+        currentCaptureContext.clearRect(0, 0, width, height);
         clearInterval(interval);
       };
     }
