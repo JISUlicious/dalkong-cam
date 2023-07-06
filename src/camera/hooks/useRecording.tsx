@@ -5,17 +5,14 @@ export function useRecording (
   videoRef: RefObject<HTMLVideoElement>,
   recorder: MediaRecorder | undefined,
   onRecorderStop: (blob: Blob[]) => Promise<any>,
-  canvasRef1: RefObject<HTMLCanvasElement>,
-  canvasRef2: RefObject<HTMLCanvasElement>,
   ): boolean {
   const recordedData = useRef<Blob[]>([]);
   const [state, setState] = useState<boolean>(false);
   const lastMotionDetectedTime = useRef<number>(0);
   
-  // const canvas1 = document.createElement("canvas");
-  // const canvas2 = document.createElement("canvas");
-  const canvas1 = canvasRef1.current;
-  const canvas2 = canvasRef2.current;
+  const canvas1 = document.createElement("canvas");
+  const canvas2 = document.createElement("canvas");
+
   
   function stopRecording (recorder: MediaRecorder) {
     const stopped = new Promise((resolve, reject) => {
