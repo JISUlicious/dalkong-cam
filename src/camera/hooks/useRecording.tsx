@@ -9,6 +9,7 @@ export function useRecording (
   const recordedData = useRef<Blob[]>([]);
   const [state, setState] = useState<boolean>(false);
   const lastMotionDetectedTime = useRef<number>(0);
+  const captureCanvas1 = useRef<boolean>(false)
   
   const canvas1 = document.createElement("canvas");
   const canvas2 = document.createElement("canvas");
@@ -33,8 +34,8 @@ export function useRecording (
     }
 
     if (videoRef.current && canvas1 && canvas2) {
-      const lastCaptureContext = canvas1.getContext('2d', {willReadFrequently: true})!;
-      const currentCaptureContext = canvas2.getContext('2d', {willReadFrequently: true})!;
+      const context1 = canvas1.getContext('2d', {willReadFrequently: true})!;
+      const context2 = canvas2.getContext('2d', {willReadFrequently: true})!;
       
       const captureInterval = 100;
       const width = 64;
@@ -45,12 +46,18 @@ export function useRecording (
       canvas2.width = width;
       canvas2.height = height;
 
-      lastCaptureContext.drawImage(videoRef.current, 0, 0, width, height);
+      context1.drawImage(videoRef.current, 0, 0, width, height);
 
       const interval = setInterval(async ()=>{
-        currentCaptureContext.drawImage(videoRef.current!, 0, 0, width, height);
+        if (captureCanvas1.current) {
+          context1.drawImage(videoRef.current!, 0, 0, width, height);
+          captureCanvas1.current = false;
+        } else {
+          context2.drawImage(videoRef.current!, 0, 0, width, height);
+          captureCanvas1.current = true;
+        }
 
-        const motionDetected = detectMotion(lastCaptureContext, currentCaptureContext);
+        const motionDetected = detectMotion(context1, context2);
         
         if (motionDetected) {
           const motionDetectedTime = Date.now();
@@ -72,13 +79,10 @@ export function useRecording (
               setState(false);
             });
         }
-
-        lastCaptureContext.clearRect(0, 0, width, height);
-        lastCaptureContext.putImageData(currentCaptureContext.getImageData(0, 0, width, height), 0, 0);
         
       }, captureInterval);
       return () => {
-        currentCaptureContext.clearRect(0, 0, width, height);
+        context2.clearRect(0, 0, width, height);
         clearInterval(interval);
       };
     }
