@@ -29,7 +29,6 @@ export function detectMotion (
       }
     }
     
-    console.log(imageScore)
     if (imageScore >= IMAGE_SCORE_THRESHOLD) {
       return true;
     } else {
