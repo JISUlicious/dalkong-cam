@@ -31,6 +31,8 @@ export function Camera () {
   const {cameraId} = useParams();
 
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef1 = useRef<HTMLCanvasElement>(null);
+  const canvasRef2 = useRef<HTMLCanvasElement>(null);
 
   const recorder = useMemo(() => {
     if (localStream) {
@@ -63,7 +65,7 @@ export function Camera () {
     }
   }, [user, localDevice])
 
-  const isRecording = useRecording(videoRef, recorder, onRecorderStop);
+  const isRecording = useRecording(videoRef, recorder, onRecorderStop, canvasRef1, canvasRef2);
 
   useEffect(() => {
     if (user && localDevice) {
@@ -147,6 +149,8 @@ export function Camera () {
     
   return (<div className="camera body-content">
     <StreamWithControls ref={videoRef} device={localDevice} muted={true}/>
+    <canvas ref={canvasRef1} />
+    <canvas ref={canvasRef2} />
     <div className="remote-media">
       <ul>
         {Object.entries(remoteDevices).map(([id, viewer]) => {
