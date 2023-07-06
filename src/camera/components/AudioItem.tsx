@@ -1,5 +1,3 @@
-import "../../common/styles/Camera.scss";
-
 import React, { useMemo } from "react";
 
 import { AudioStream } from "./AudioStream";

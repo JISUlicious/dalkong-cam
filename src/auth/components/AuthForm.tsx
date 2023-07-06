@@ -18,12 +18,29 @@ export function AuthForm ({buttonText, onSubmit}: AuthFormProps) {
   }
 
   return (<form onSubmit={(event) => onSubmit(event, inputId, inputPw)}>
-    <label>
-      <input onChange={onChangeId} placeholder="ID" required />
-    </label>
-    <label>
-      <input onChange={onChangePw} placeholder="PW" required type="password" />
-    </label>
-    <button type="submit">{buttonText}</button>
+    <div className="container-fluid">
+      <div className="input-group mb-3">
+        <input 
+          type="text" 
+          className="form-control" 
+          placeholder="User e-mail" 
+          aria-label="User e-mail" 
+          aria-describedby="basic-addon1" 
+          onChange={onChangeId}
+          required
+        />
+      </div>
+
+      <div className="input-group mb-3">
+        <input type="password" 
+          className="form-control" 
+          placeholder="Password" 
+          aria-label="Password" 
+          aria-describedby="basic-addon2" 
+          onChange={onChangePw} 
+        />
+        <button className="btn btn-outline-secondary" type="submit" id="button-addon2">{buttonText}</button>
+      </div>
+    </div>
   </form>);
 }

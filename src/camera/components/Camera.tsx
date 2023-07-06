@@ -1,5 +1,3 @@
-import "../../common/styles/Camera.scss";
-
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { collection, doc, getDoc, onSnapshot, query, where } from "firebase/firestore";
 

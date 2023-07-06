@@ -1,5 +1,5 @@
-import "./common/styles/Reset.scss";
 import "./common/styles/App.scss";
+
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SignIn } from "./auth/components/SignIn";

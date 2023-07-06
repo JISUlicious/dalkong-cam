@@ -1,5 +1,3 @@
-import "../../common/styles/VideoItem.scss";
-
 import React from "react";
 
 interface SavedVideoProps {
