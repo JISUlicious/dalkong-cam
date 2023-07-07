@@ -8,20 +8,29 @@ export function Main () {
   const { user } = useAuthContext();
 
   return <div className="body-content">
-    <h1>Main</h1>
-    { user?.email }
-    <div className="main-button-wrapper wrapper">
-      <h3>Use this device as...</h3>
-      <Link to="/camera">
-        <button>
-          Camera
-        </button>
-      </Link>
-      <Link to={"/viewer"}>
-        <button>
-          Viewer
-        </button>
-      </Link>
+    <div className="container-fluid pt-3 text-center">
+      <div className="row">
+        <h1>Hello, { user?.email }</h1>
+      </div>
+      <div className="row pb-3">
+        <h4>Use this device as...</h4>
+      </div>
+      <div className="row gx-5 mx-auto">
+        <div className="col">
+          <Link to="/camera">
+            <button className="btn btn-primary float-end">
+              Camera
+            </button>
+          </Link>
+        </div>
+        <div className="col">
+          <Link to={"/viewer"}>
+            <button className="btn btn-primary float-start">
+              Viewer
+            </button>
+          </Link>
+        </div>
+      </div>
     </div>
   </div>;
 }
