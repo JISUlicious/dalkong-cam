@@ -16,8 +16,8 @@ export function AudioItem ({viewer}: RemoteViewer) {
     const hslColorKey = `hsl(${randomHue} 80% 80%)`;
     return hslColorKey;
   }, [viewer]);
-  return <button className="remote-viewer btn disabled" style={{backgroundColor:hslColorKey}}>
+  return <span className="badge" style={{backgroundColor: hslColorKey, color: "black"}}>
     {viewer.data()?.deviceName.charAt(0)}
     <AudioStream stream={remoteStreams?.[viewer.id]} />
-  </button>
+  </span>
 }
