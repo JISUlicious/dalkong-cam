@@ -42,15 +42,19 @@ export function CreateCamera () {
     });
   }
 
-  return <div className="create-camera body-content">
-    <h1>CreateCamera</h1>
-    <form onSubmit={onSubmit}>
-      <label>
-        <input onChange={onChange} value={input} placeholder="Camera Name" required />
-      </label>
-      <button type="submit">
-        Start Camera
-      </button>
-    </form>
+  return <div className="create-camera body-content container-fluid pt-3">
+    <div className="card">
+      <h1 className="card-header">CreateCamera</h1>
+      <div className="card-body">       
+        <form onSubmit={onSubmit}>
+          <div className="input-group mb-3">
+            <input className="form-control" onChange={onChange} value={input} placeholder="Camera Name" required />
+            <button type="submit" className="btn btn-outline-secondary" id="button-addon2">
+              Start Camera
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>    
   </div>;
 }

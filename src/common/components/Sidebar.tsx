@@ -45,7 +45,7 @@ export function Sidebar () {
       <ul className="navbar-nav justify-content-end flex-grow-1 pe-3 pb-3">
         <li className="nav-item">
           <Link to="/">
-            <button className="btn btn-link" type="button">
+            <button className="btn btn-link text-start" type="button">
               Home
             </button>
           </Link>
@@ -53,7 +53,7 @@ export function Sidebar () {
         {user 
           ? <li className="nav-item">
             <Link to="/camera">
-              <button className="btn btn-link" type="button">
+              <button className="btn btn-link text-start" type="button">
                 Camera
               </button>
             </Link>
@@ -63,7 +63,7 @@ export function Sidebar () {
         {user 
           ? <li className="nav-item">
             <Link to={"/viewer"}>
-              <button className="btn btn-link" type="button">
+              <button className="btn btn-link text-start" type="button">
                 Viewer
               </button>
             </Link>
@@ -73,7 +73,7 @@ export function Sidebar () {
         {user 
           ? <li className="nav-item">
             <Link to={"/history"}>
-              <button className="btn btn-link" type="button">
+              <button className="btn btn-link text-start" type="button">
                 History
               </button>
             </Link>

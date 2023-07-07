@@ -14,8 +14,19 @@ a {
   text-decoration: none;
 }
 
-.input-group{
+.btn {
+  min-width: 100px;
+}
+
+.stream-overlay {
   .btn {
-    width: 100px;
+    min-width: 0px;
   }
 }
+
+.remote-media {
+  .btn {
+    min-width: 0px;
+  }
+}
+

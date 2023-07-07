@@ -3,7 +3,7 @@ import { FiMenu } from "react-icons/fi";
 
 export function Header () {
   
-  return <nav className="navbar bg-body-tertiary sticky-top">
+  return <nav className="navbar bg-primary-subtle sticky-top">
     <div className="container-fluid">
       <div className="navbar-brand">
         <h1>Dalkong-Cam</h1>
@@ -17,7 +17,6 @@ export function Header () {
         aria-label="Toggle navigation">
         <FiMenu />
       </button>
-      
     </div>
   </nav>;
 }

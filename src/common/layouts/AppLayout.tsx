@@ -8,9 +8,9 @@ import {Sidebar} from "../components/Sidebar";
 export function AppLayout () {
   return <div className="app-layout">
     <Header />
-    <Sidebar />
     <div className="app-body">
       <Outlet />
     </div>
+    <Sidebar />
   </div>;
 }

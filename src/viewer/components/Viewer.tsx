@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { collection, doc, getDoc, onSnapshot, query } from "firebase/firestore";
 
 import { CameraItem } from "./CameraItem";
@@ -23,6 +23,23 @@ export function Viewer () {
   const {user} = useAuthContext();
   
   const {localStream, localDevice, remoteDevices} = useConnectionContext();
+
+  const [rowColValue, setRowColValue] = useState<number>(3);
+
+  useEffect(() => {
+    function setRowColFromWidth () {
+      const width = window.innerWidth;
+      if (width >= 1400 ) {
+        setRowColValue(3);
+      } else if (width >= 768) {
+        setRowColValue(2);
+      } else {
+        setRowColValue(1);
+      }
+    }
+    setRowColFromWidth();
+    window.addEventListener("resize", setRowColFromWidth)
+  }, []);
 
   const sessions = useRef<Record<string, number | undefined>>();
   const recordingStates = useRef<Record<string, boolean | undefined>>();
@@ -102,18 +119,15 @@ export function Viewer () {
     }
   }, [user, localDevice, !!localStream]);
 
-  return (<div className="viewer body-content">
-    <h1>Viewer</h1>
-    {localDevice?.data()?.deviceName}
-    <div className="list-cameras-wrapper">
-      list of cameras
-      <ul>
+  return (<div className="viewer body-content container-fluid w-100 p-1 mx-0">
+    <h6 className="text-center">{Object.keys(remoteDevices).length} Camera{Object.keys(remoteDevices).length < 2 ? "" : "s"} Online</h6>
+    <div className={`list-cameras-wrapper row mx-0 p-3 row-cols-${rowColValue}`}>
         {Object.entries(remoteDevices).map(([id, camera]) => {
-          return (<li key={id}>
+          return (<div key={id} className="col py-2">
             <CameraItem camera={camera} />
-          </li>);
+          </div>);
         })}
-      </ul>
+
     </div>
   </div>);
 }
