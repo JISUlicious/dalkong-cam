@@ -36,6 +36,7 @@ video {
 
 .camera-name {
   color: white;
+  white-space: nowrap;
 }
 
 .controls {
@@ -74,4 +75,22 @@ video {
 
 select {
   color: $secondary-accent-color;
+}
+
+.remote-media {
+  ul {
+    display: inline-flex;
+  }
+}
+
+.remote-viewer {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid white;
+  padding: 4px;
+  background-color: $primary-accent-color;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

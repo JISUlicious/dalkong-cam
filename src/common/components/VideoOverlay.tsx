@@ -1,17 +1,20 @@
-import React from "react";
+import React, { MouseEvent } from "react";
 
 import { Controls } from "./Controls";
 
 import { DeviceState } from "../contexts/ConnectionContext";
 
 interface VideoOverlayProps {
-  stream: MediaStream | null | undefined,
   device: DeviceState | null
 }
 
-export function VideoOverlay({stream, device}: VideoOverlayProps) {
-  return (<div className="video-overlay">
-    <Controls stream={stream}/>
-    <h1 className="camera-name">{device?.data()?.deviceName}</h1>
+function onClick (event: MouseEvent) {
+  event.stopPropagation();
+}
+
+export function VideoOverlay({device}: VideoOverlayProps) {
+  return (<div className="video-overlay" onClick={onClick}>
+    <Controls device={device}/>
+    <div className="camera-name">{device?.data()?.deviceName}</div>
   </div>);
 }

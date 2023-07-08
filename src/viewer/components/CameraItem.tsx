@@ -7,6 +7,7 @@ import {
   DeviceState, 
   useConnectionContext
 } from "../../common/contexts/ConnectionContext";
+import { VideoOverlay } from "../../common/components/VideoOverlay";
 
 
 interface CameraItemProps {
@@ -23,8 +24,8 @@ export function CameraItem({camera}: CameraItemProps) {
     navigate(`/viewer/${localDevice?.id}/camera/${camera.id}`); // TODO: make route
   }
 
-  return (<div className="camera-item" onClick={onClick}>
-    <h1>{camera.data()?.deviceName}</h1>
-    <Stream stream={remoteStreams?.[camera?.id]} />
+  return (<div className="camera-item video-wrapper" onClick={onClick}>
+      <VideoOverlay device={camera}/>
+      <Stream stream={remoteStreams?.[camera?.id]} />
   </div>);
 }
