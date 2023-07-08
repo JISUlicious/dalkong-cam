@@ -38,13 +38,13 @@ export function CameraItem({camera}: CameraItemProps) {
   }, [isFullscreen]);
 
   useEffect(() => {
-    if (cameraItemRef.current) {
-      cameraItemRef.current.addEventListener("click", onClickStream);
+    if (streamRef.current) {
+      streamRef.current.addEventListener("click", onClickStream);
       return () => {
-        cameraItemRef.current?.removeEventListener("click", onClickStream);
+        streamRef.current?.removeEventListener("click", onClickStream);
       }
     }
-  }, [cameraItemRef, isFullscreen]);
+  }, [streamRef, isFullscreen]);
 
   useEffect(() => {
     if (remoteStreams?.[camera?.id]) {

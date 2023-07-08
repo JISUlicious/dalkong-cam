@@ -22,11 +22,13 @@ export function StreamOverlay({device}: VideoOverlayProps) {
   const dispatch = useConnectionDispatchContext();
   const cameras = useCameras();
   
-  function onToggleMic () {
+  function onToggleMic (event: MouseEvent) {
+    event.stopPropagation();
     dispatch(ConnectionActionCreator.toggleMic());
   }
 
-  function onToggleSpeaker () {
+  function onToggleSpeaker (event: MouseEvent) {
+    event.stopPropagation();
     dispatch(ConnectionActionCreator.toggleSpeaker(device!.id));
   }
 
