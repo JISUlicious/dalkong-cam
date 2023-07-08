@@ -12,6 +12,7 @@ import { Camera } from "./camera/components/Camera";
 import { ConnectionProvider } from "./common/contexts/ConnectionContext";
 import { useAuthContext } from "./common/contexts/AuthContext";
 import { CreateViewer } from "./viewer/components/CreateViewer";
+import { History } from "./history/components/History";
 
 function App() {
   const {user} = useAuthContext();
@@ -27,6 +28,7 @@ function App() {
             <Route path="/viewer" element={<CreateViewer />} />
             <Route path="/camera/:cameraId" element={<Camera />} />
             <Route path="/viewer/:viewerId" element={<Viewer />} />
+            <Route path="/history" element={<History />} />
           </Route>
         </Routes>
       </BrowserRouter>

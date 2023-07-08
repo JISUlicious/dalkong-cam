@@ -1,13 +1,13 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-
-import { Stream } from "../../common/components/Stream";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { 
   DeviceState, 
   useConnectionContext
 } from "../../common/contexts/ConnectionContext";
-import { VideoOverlay } from "../../common/components/VideoOverlay";
+import { StreamWithControls } from "../../common/components/StreamWithControls";
+import { where } from "firebase/firestore";
+import { VideosList } from "../../common/components/VideosList";
+import { useTimeOrderedVideos } from "../../common/hooks/useTimeOrderedVideos";
 
 
 interface CameraItemProps {
@@ -16,16 +16,47 @@ interface CameraItemProps {
 
 export function CameraItem({camera}: CameraItemProps) {
   
-  const {remoteStreams, localDevice} = useConnectionContext();
+  const {remoteStreams} = useConnectionContext();
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  
+  const videosData = useTimeOrderedVideos(
+    where("deviceId", "==", camera.id), 
+    );
+  console.log(videosData);
 
-  const navigate = useNavigate();
+  const streamRef = useRef<HTMLVideoElement>(null);
+  const cameraItemRef = useRef<HTMLDivElement>(null);
+  const doc = useRef(document);
+  
+  const onClickStream = useCallback((event: MouseEvent) => {
+    if (isFullscreen) {
+      doc.current.exitFullscreen();
+      setIsFullscreen(false);
+    } else {
+      cameraItemRef.current?.requestFullscreen();
+      setIsFullscreen(true);
+    }
+  }, [isFullscreen]);
 
-  function onClick () {
-    navigate(`/viewer/${localDevice?.id}/camera/${camera.id}`); // TODO: make route
-  }
+  useEffect(() => {
+    if (cameraItemRef.current) {
+      cameraItemRef.current.addEventListener("click", onClickStream);
+      return () => {
+        cameraItemRef.current?.removeEventListener("click", onClickStream);
+      }
+    }
+  }, [cameraItemRef, isFullscreen]);
 
-  return (<div className="camera-item video-wrapper" onClick={onClick}>
-      <VideoOverlay device={camera}/>
-      <Stream stream={remoteStreams?.[camera?.id]} />
+  useEffect(() => {
+    if (remoteStreams?.[camera?.id]) {
+      if (!streamRef.current || !remoteStreams?.[camera?.id])
+        return;
+      streamRef.current.srcObject = remoteStreams?.[camera?.id];
+    }
+  }, [remoteStreams?.[camera?.id]]);
+  
+  return (<div className={`camera-item ${isFullscreen ? "fullscreen" : ""}`} ref={cameraItemRef}>
+    <StreamWithControls ref={streamRef} device={camera} />
+    { isFullscreen ? <VideosList videos={videosData} /> : null }
   </div>);
 }

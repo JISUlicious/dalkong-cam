@@ -14,7 +14,7 @@ export function AppLayout () {
   }, []);
   return <div className="app-layout">
     <Header toggleSidebar={toggleSidebar} />
-    <Sidebar isSidebarOpen={isSidebarOpen}/>
+    <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
     <div className="app-body">
       <Outlet />
     </div>
