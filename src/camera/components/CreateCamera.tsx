@@ -25,7 +25,8 @@ export function CreateCamera () {
     event.preventDefault();
     const key = `users/${user?.uid}/cameras`;
     const cameraInfo = {
-      deviceName: input
+      deviceName: input,
+      deviceType: "camera"
     };
     addItem(key, cameraInfo).then(docRef => {
       getDoc(docRef).then(doc => {

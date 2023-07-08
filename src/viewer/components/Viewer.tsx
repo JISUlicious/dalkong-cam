@@ -1,7 +1,7 @@
 import "../../common/styles/Viewer.scss";
 
-import React, { useEffect, useState } from "react";
-import { Unsubscribe, collection, getDoc, onSnapshot, query } from "firebase/firestore";
+import React, { useEffect } from "react";
+import { collection, getDoc, onSnapshot, query } from "firebase/firestore";
 
 import { CameraItem } from "./CameraItem";
 
@@ -13,42 +13,31 @@ import {
   useConnectionDispatchContext
 } from "../../common/contexts/ConnectionContext";
 
-import { addItem, removeItem, removeItems} from "../../common/functions/storage";
+import { addItem} from "../../common/functions/storage";
 import { getMedia } from "../../common/functions/getMedia";
 import { db } from "../../common/functions/firebaseInit";
-import { getViewerSubscriptions } from "../functions/getViewerSubscriptions";
-import { setViewerConnection } from "../functions/setViewerConnection";
-import { clearConnectionById } from "../functions/clearConnectionById";
 
-export interface Subscriptions {
-  [id: string]: {
-    unsubDescriptions: Unsubscribe,
-    unsubICECandidates: Unsubscribe
-  }
-}
 
 export function Viewer () {
 
   const {user} = useAuthContext();
   
-  const {localStream, localDevice, remoteDevices, connections} = useConnectionContext();
+  const {localStream, localDevice, remoteDevices} = useConnectionContext();
 
   const dispatch = useConnectionDispatchContext();
 
-  const [subscriptions, setSubscriptions] = useState<Subscriptions>({});
-
   useEffect(() => {
-    if (!localDevice) {
+    if (user) {
       const key = `users/${user?.uid}/viewers`;
-      addItem(key, {}).then(async docRef => {
+      addItem(key, {deviceType: "viewer"}).then(async docRef => {
         const viewerDoc = await getDoc(docRef);
         dispatch(ConnectionActionCreator.setLocalDevice(viewerDoc as DeviceState));
       });
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
-    if (!localStream || !localStream?.active) {
+    if (!localStream?.active) {
       getMedia().then(localMedia => {
         dispatch(ConnectionActionCreator.setLocalStream(localMedia));
       });
@@ -62,51 +51,21 @@ export function Viewer () {
       const unsubscribeCamerasCollection = onSnapshot(camerasQuery, async snapshot => {
         snapshot.docChanges().map(async (change) => {
           if (change.type === "added") {
-            const cameraDoc = change.doc as DeviceState;
-            const cameraKey = `users/${user.uid}/cameras/${cameraDoc.id}`
-            
-            const connection = await setViewerConnection(cameraDoc, user.uid, dispatch, localDevice, localStream);
-
-            const [unsubscribeDescriptions, unsubscribeICECandidates] = getViewerSubscriptions(
-              cameraKey, 
-              localDevice, 
-              connection
-              );
-
-            setSubscriptions((prev) => ({
-              ...prev,
-              [cameraDoc.id]: {
-                unsubDescriptions: unsubscribeDescriptions,
-                unsubICECandidates: unsubscribeICECandidates
-              }
-            }));
-            
+            dispatch(ConnectionActionCreator.addRemoteDevice(change.doc as DeviceState));
           } else if (change.type === "removed") {
-            console.log(subscriptions);
-            clearConnectionById(change.doc.id, subscriptions, setSubscriptions, dispatch);
+            dispatch(ConnectionActionCreator.removeRemoteDevice(change.doc.id));
           }
         });
       }, (error) => console.log(error));  
 
       return (() => {
-        
-        for (const id in remoteDevices) {
-          removeItems(`users/${user.uid}/cameras/${id}/viewers/${localDevice.id}/offeringCandidates`);
-          removeItems(`users/${user.uid}/cameras/${id}/viewers/${localDevice.id}/answeringCandidates`);
-          removeItem(`users/${user.uid}/cameras/${id}/viewers/${localDevice.id}`);
-        }
-        removeItem(`users/${user.uid}/viewers/${localDevice.id}`);
-        
         unsubscribeCamerasCollection();
-        for (const id in connections) {
-          clearConnectionById(id, subscriptions, setSubscriptions, dispatch)
-        }
         
         dispatch(ConnectionActionCreator.setLocalStream(null));
         dispatch(ConnectionActionCreator.setLocalDevice(null));
       });
     }
-  }, [localDevice, localStream]);
+  }, [user, localDevice, localStream]);
 
   return (<div className="viewer body-content">
     <h1>Viewer</h1>
