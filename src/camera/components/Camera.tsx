@@ -65,7 +65,7 @@ export function Camera () {
     }
   }, [user, localDevice])
 
-  const isRecording= useRecording(videoRef, recorder, onRecorderStop);
+  const isRecording = useRecording(videoRef, recorder, onRecorderStop);
 
   useEffect(() => {
     if (user && localDevice) {
