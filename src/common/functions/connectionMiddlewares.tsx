@@ -10,6 +10,19 @@ export const setLocalStream = (api: MiddlewareAPI<ConnectionState>) =>
   if (action.type === "setLocalStream" && action.stream === null) {
     const currStream = api.getState().localStream;
     currStream?.getTracks().forEach(track => track.stop());
+  } else if ((action.type === "setLocalStream" && action.stream && api.getState().localStream)) {
+    const state = api.getState();
+    if (state.localStream) {
+      state.localStream.getTracks().forEach(track => track.stop());
+    }
+    const connections = state.connections;
+    Object.entries(connections).map(([remoteId, connection]) => {
+      const senders = connection.getSenders();
+      const videoSender = senders.find((sender) => sender.track?.kind === "video");
+      videoSender?.replaceTrack(action.stream!.getVideoTracks()[0]);
+      const audioSender = senders.find((sender) => sender.track?.kind === "audio");
+      audioSender?.replaceTrack(action.stream!.getAudioTracks()[0]);
+    });
   }
   next(action);
 };
@@ -22,6 +35,7 @@ export const setLocalDevice = (api: MiddlewareAPI<ConnectionState>) =>
     const localDevice = state.localDevice;
     const localDeviceType = localDevice?.data()?.deviceType;
     const remoteDevices = state.remoteDevices;
+    
     if (localDeviceType === "viewer") {
       Object.keys(remoteDevices).map(id => {
         const connectionKey = `${remoteDevices[id].ref.path}/connections/${localDevice!.id}`;
@@ -39,6 +53,10 @@ export const setLocalDevice = (api: MiddlewareAPI<ConnectionState>) =>
       });
       removeItem(localDevice!.ref.path);
     }
+
+    Object.keys(remoteDevices).map(id => {
+      api.dispatch(ConnectionActionCreator.removeRemoteDevice(id))
+    });
   }
   next(action);
 };
@@ -47,6 +65,7 @@ export const addRemoteDevice = (api: MiddlewareAPI<ConnectionState>) =>
 (next: Dispatch) =>
 async (action: Action) => {
   if (action.type === "addRemoteDevice") {
+
     const localDevice = api.getState().localDevice;
     const localDeviceType = localDevice?.data()?.deviceType;
     const sdpType = localDeviceType === "viewer" ? "offer" : "answer";
@@ -55,13 +74,29 @@ async (action: Action) => {
     const connectionKey = localDeviceType === "viewer" 
       ? `${action.device.ref.path}/connections/${localDevice?.id}`
       : `${localDevice?.ref.path}/connections/${action.device.id}`;
+
+    const connection = getConnection(
+      localDevice!, 
+      sdpType, 
+      connectionKey, 
+      action, 
+      api.dispatch, 
+      localStream
+      );
     
-    const connection = getConnection(localDeviceType!, sdpType, connectionKey, action, api.dispatch, localStream);
-    
-    const [unsubDescriptions, unsubICECandidates] = getConnectionDocSubscriptions(localDeviceType!, sdpType, connectionKey, connection, localStream);
-    
-    api.dispatch(ConnectionActionCreator.addConnection(action.device.id, connection));
-    api.dispatch(ConnectionActionCreator.addSubscription(action.device.id, [unsubDescriptions, unsubICECandidates]));
+    const [unsubDescriptions, unsubICECandidates] = getConnectionDocSubscriptions(
+      localDeviceType!, 
+      sdpType, 
+      connectionKey, 
+      connection, 
+      localStream
+      );
+
+    api.dispatch(ConnectionActionCreator.setConnection(action.device.id, connection));
+    api.dispatch(ConnectionActionCreator.addSubscription(
+      action.device.id,
+      [unsubDescriptions, unsubICECandidates]
+      ));
   }
   next(action);
 };
@@ -72,21 +107,21 @@ export const removeRemoteDevice = (api: MiddlewareAPI<ConnectionState>) =>
   if (action.type === "removeRemoteDevice") {
     const id = action.id;
     const state = api.getState();
-    state.remoteStreams?.[id].getTracks().forEach(track => track.stop());
+    state.remoteStreams?.[id]?.getTracks().forEach(track => track.stop());
     api.dispatch(ConnectionActionCreator.removeRemoteStream(id));
-    state.subscriptions?.[id].forEach(unsub => unsub());
+    state.subscriptions?.[id]?.forEach(unsub => unsub());
     api.dispatch(ConnectionActionCreator.removeSubscription(id));
-    state.connections?.[id].close()
+    state.connections?.[id]?.close()
     api.dispatch(ConnectionActionCreator.removeConnection(id));
   }
   next(action);
 };
 
-export const loger = (api: MiddlewareAPI<ConnectionState>) =>
+export const logger = (api: MiddlewareAPI<ConnectionState>) =>
 (next: Dispatch) =>
 (action: Action) => {
   console.log("before", api.getState());
-  const result = next(action);
+  console.log("action", action);
+  next(action);
   console.log("after", api.getState());
-  
 };

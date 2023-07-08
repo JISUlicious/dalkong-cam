@@ -11,6 +11,7 @@ import { AppLayout } from "./common/layouts/AppLayout";
 import { Camera } from "./camera/components/Camera";
 import { ConnectionProvider } from "./common/contexts/ConnectionContext";
 import { useAuthContext } from "./common/contexts/AuthContext";
+import { CreateViewer } from "./viewer/components/CreateViewer";
 
 function App() {
   const {user} = useAuthContext();
@@ -23,6 +24,7 @@ function App() {
             <Route path="/sign-in" element={!user ? <SignIn /> : <Navigate to={"/"} />} />
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/camera" element={<CreateCamera />} />
+            <Route path="/viewer" element={<CreateViewer />} />
             <Route path="/camera/:cameraId" element={<Camera />} />
             <Route path="/viewer/:viewerId" element={<Viewer />} />
           </Route>

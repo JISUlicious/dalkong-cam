@@ -1,7 +1,7 @@
 import "../../common/styles/Viewer.scss";
 
 import React, { useEffect } from "react";
-import { collection, getDoc, onSnapshot, query } from "firebase/firestore";
+import { collection, doc, getDoc, onSnapshot, query } from "firebase/firestore";
 
 import { CameraItem } from "./CameraItem";
 
@@ -13,9 +13,10 @@ import {
   useConnectionDispatchContext
 } from "../../common/contexts/ConnectionContext";
 
-import { addItem} from "../../common/functions/storage";
 import { getMedia } from "../../common/functions/getMedia";
 import { db } from "../../common/functions/firebaseInit";
+import { useParams } from "react-router-dom";
+import { getItem, removeItem, removeItems } from "../../common/functions/storage";
 
 
 export function Viewer () {
@@ -26,22 +27,38 @@ export function Viewer () {
 
   const dispatch = useConnectionDispatchContext();
 
+  const {viewerId} = useParams();
   useEffect(() => {
-    if (user) {
-      const key = `users/${user?.uid}/viewers`;
-      addItem(key, {deviceType: "viewer"}).then(async docRef => {
-        const viewerDoc = await getDoc(docRef);
-        dispatch(ConnectionActionCreator.setLocalDevice(viewerDoc as DeviceState));
-      });
+    if (!localDevice && user) {
+      getItem(`users/${user.uid}/cameras`)
+        .then(snapshot => {
+          snapshot.forEach(doc => {
+            removeItems(`${doc.ref.path}/connections/${viewerId}/offeringCandidates`);
+            removeItems(`${doc.ref.path}/connections/${viewerId}/answeringCandidates`);
+            removeItem(`${doc.ref.path}/connections/${viewerId}`);
+          });
+        });
+
+      getDoc(doc(db, `users/${user.uid}/viewers/${viewerId}`))
+        .then(doc => dispatch(ConnectionActionCreator.setLocalDevice(doc as DeviceState)));
     }
-  }, [user]);
+  }, [user, localDevice]);
 
   useEffect(() => {
     if (!localStream?.active) {
       getMedia().then(localMedia => {
+        localMedia.getTracks().forEach(track => {
+          if (track.kind === "audio") {
+            track.enabled = false;
+          }
+        });
         dispatch(ConnectionActionCreator.setLocalStream(localMedia));
       });
     }
+    return (() => {
+      dispatch(ConnectionActionCreator.setLocalStream(null));
+      dispatch(ConnectionActionCreator.setLocalDevice(null));
+    });
   }, []);
 
   useEffect(() => {
@@ -50,28 +67,23 @@ export function Viewer () {
       const camerasQuery = query(collection(db, key));
       const unsubscribeCamerasCollection = onSnapshot(camerasQuery, async snapshot => {
         snapshot.docChanges().map(async (change) => {
-          if (change.type === "added") {
+          if (["added", "modified"].includes(change.type)) {
             dispatch(ConnectionActionCreator.addRemoteDevice(change.doc as DeviceState));
           } else if (change.type === "removed") {
             dispatch(ConnectionActionCreator.removeRemoteDevice(change.doc.id));
-          }
+          } 
         });
       }, (error) => console.log(error));  
-
-      return (() => {
-        unsubscribeCamerasCollection();
-        
-        dispatch(ConnectionActionCreator.setLocalStream(null));
-        dispatch(ConnectionActionCreator.setLocalDevice(null));
-      });
+      
+      return (() => unsubscribeCamerasCollection());
     }
-  }, [user, localDevice, localStream]);
+  }, [user, localDevice, !!localStream]);
 
   return (<div className="viewer body-content">
     <h1>Viewer</h1>
-    {user?.email}
+    {localDevice?.data()?.deviceName}
     <div className="list-cameras-wrapper">
-      list of camera
+      list of cameras
       <ul>
         {Object.entries(remoteDevices).map(([id, camera]) => {
           return (<li key={id}>
