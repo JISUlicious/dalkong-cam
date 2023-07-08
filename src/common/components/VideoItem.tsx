@@ -21,8 +21,7 @@ export function VideoItem ({title, url, duration}: SavedVideoProps) {
 
   useEffect(() => {
     videoRef.current?.addEventListener("durationchange", () => {
-      if (!Number.isNaN(videoRef.current?.duration)
-      && Number.isFinite(videoRef.current?.duration)) {
+      if (Number.isFinite(videoRef.current?.duration)) {
         videoRef.current!.currentTime = 0;
       }
     })
