@@ -12,7 +12,10 @@ import {
 import { addItem } from "../../common/functions/storage";
 
 export function CreateCamera () {
-  const [input, setInput] = useState("");
+  const localValue = localStorage.getItem("cameraDeviceName");
+  const initialValue = localValue ? localValue : "";
+
+  const [input, setInput] = useState(initialValue);
   const {user} = useAuthContext();
   const dispatch = useConnectionDispatchContext();
   const navigate = useNavigate();
@@ -24,14 +27,17 @@ export function CreateCamera () {
   function onSubmit (event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const key = `users/${user?.uid}/cameras`;
+    const sessionId = Date.now();
     const cameraInfo = {
       deviceName: input,
-      deviceType: "camera"
+      deviceType: "camera",
+      sessionId: sessionId
     };
     addItem(key, cameraInfo).then(docRef => {
       getDoc(docRef).then(doc => {
         dispatch(ConnectionActionCreator.setLocalDevice(doc as DeviceState));
         navigate(`/camera/${docRef.id}`);
+        localStorage.setItem("deviceName", input);
       });
     });
   }
@@ -40,7 +46,7 @@ export function CreateCamera () {
     <h1>CreateCamera</h1>
     <form onSubmit={onSubmit}>
       <label>
-        <input onChange={onChange} placeholder="Camera Name" required />
+        <input onChange={onChange} value={input} placeholder="Camera Name" required />
       </label>
       <button type="submit">
         Start Camera

@@ -61,11 +61,14 @@ export const setLocalDevice = (api: MiddlewareAPI<ConnectionState>) =>
   next(action);
 };
 
+
 export const addRemoteDevice = (api: MiddlewareAPI<ConnectionState>) =>
 (next: Dispatch) =>
 async (action: Action) => {
-  if (action.type === "addRemoteDevice") {
-
+  if (
+    action.type === "addRemoteDevice" 
+    ) {
+    
     const localDevice = api.getState().localDevice;
     const localDeviceType = localDevice?.data()?.deviceType;
     const sdpType = localDeviceType === "viewer" ? "offer" : "answer";

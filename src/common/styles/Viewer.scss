@@ -11,5 +11,17 @@ ul {
   video {
     background-color: black;
   }
+  &.fullscreen {
+    overflow-y: auto;
+    ul {
+      margin: 0;
+    }
+    .video-item {
+      
+    }
+    .video-title {
+      color: white;
+    }
+  }
 }
 

@@ -1,6 +1,6 @@
 import "../../common/styles/Viewer.scss";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { collection, doc, getDoc, onSnapshot, query } from "firebase/firestore";
 
 import { CameraItem } from "./CameraItem";
@@ -19,11 +19,29 @@ import { useParams } from "react-router-dom";
 import { getItem, removeItem, removeItems } from "../../common/functions/storage";
 
 
+
 export function Viewer () {
 
   const {user} = useAuthContext();
   
   const {localStream, localDevice, remoteDevices} = useConnectionContext();
+
+  const sessions = useRef<Record<string, number | undefined>>();
+  const recordingStates = useRef<Record<string, boolean | undefined>>();
+
+  useEffect(() => {
+    const sessionIds = {} as Record<string, number | undefined>;
+    Object.entries(remoteDevices).map(([id, device]) => {
+      sessionIds[id] = device.data()?.sessionId;
+    });
+    sessions.current = sessionIds;
+
+    const isRecordings = {} as Record<string, boolean | undefined>;
+    Object.entries(remoteDevices).map(([id, device]) => {
+      isRecordings[id] = device.data()?.isRecording;
+    });
+    recordingStates.current = isRecordings;
+  }, [remoteDevices]);
 
   const dispatch = useConnectionDispatchContext();
 
@@ -67,10 +85,17 @@ export function Viewer () {
       const camerasQuery = query(collection(db, key));
       const unsubscribeCamerasCollection = onSnapshot(camerasQuery, async snapshot => {
         snapshot.docChanges().map(async (change) => {
-          if (["added", "modified"].includes(change.type)) {
+          if (change.type === "added") {
             dispatch(ConnectionActionCreator.addRemoteDevice(change.doc as DeviceState));
           } else if (change.type === "removed") {
             dispatch(ConnectionActionCreator.removeRemoteDevice(change.doc.id));
+          } else if (change.type === "modified") {
+            const docId = change.doc.id;
+            if (sessions.current?.[docId] !== change.doc.data().sessionId) {
+              dispatch(ConnectionActionCreator.addRemoteDevice(change.doc as DeviceState));
+            } else if (recordingStates.current?.[docId] !== change.doc.data().isRecording) {
+              dispatch(ConnectionActionCreator.updateRemoteDevice(change.doc as DeviceState));
+            }
           } 
         });
       }, (error) => console.log(error));  
