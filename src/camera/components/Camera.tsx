@@ -137,7 +137,7 @@ export function Camera () {
     }
   }, [user, !!localDevice, !!localStream]);
 
-  return (<div className="camera body-content container-fluid w-100 px-0 mx-0">
+  return (<div className="camera body-content container-fluid w-100 px-0">
     <div className="stream container-fluid px-0 position-relative">
       <StreamWithControls ref={videoRef} device={localDevice} muted={true}/>
       <div className="remote-media position-absolute bottom-0 row mx-0 p-1 justify-content-center">

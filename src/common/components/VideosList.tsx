@@ -28,19 +28,25 @@ interface VideosListProps {
   videos: VideosData[]
 }
 
+
+
 export function VideosList ({videos}: VideosListProps) {
 
   return (<div className="vstack gap-2 py-2">
     {videos.map((data) => {
       const datetime = new Date(data.timestamp);
-      const year = datetime.getFullYear();
-      const month = datetime.getMonth();
-      const date = datetime.getDate();
-      const hour = datetime.getHours();
-      const minute = datetime.getMinutes();
-      const second = datetime.getSeconds();
-
-      const title = `${monthNames[month]} ${date} ${year} ${hour}:${minute < 10 ? `0${minute}` : minute}:${second < 10 ? `0${second}` : second}`;
+      
+      const options: Intl.DateTimeFormatOptions = {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+      };
+      
+      const title = new Intl.DateTimeFormat("en-US", options).format(datetime);
       return <div className="container-fluid px-2" key={data.deviceId + data.timestamp}>
         <VideoItem title={title} url={data.url} />
       </div>;
