@@ -7,22 +7,14 @@ export function detectMotion (
   currentCaptureContext: CanvasRenderingContext2D | null | undefined, 
   ) {
   if (lastCaptureContext && currentCaptureContext) {
-    
 
     const lastImageData = lastCaptureContext.getImageData(0,0,64,48);
     const currentImageData = currentCaptureContext.getImageData(0,0,64,48);
     let imageScore = 0;
 
-    const difference = lastImageData.data.map((value, index) => {
-      return Math.abs(value - currentImageData.data[index])
-    })
-
-    for (let i = 0; i < difference.length; i += 4) {
-      const r = difference[i] / 3;
-      // const g = difference[i + 1] / 3;
-      // const b = difference[i + 2] / 3;
-      // const pixelScore = r + g + b;
-      const pixelScore = r;
+    for (let i = 0; i < lastImageData.data.length; i += 4) {
+      // calculates pixel score for r
+      const pixelScore = Math.abs(currentImageData.data[i] - lastImageData.data[i]) / 3; 
 
       if (pixelScore >= PIXEL_SCORE_THRESHOLD) {
         imageScore++;

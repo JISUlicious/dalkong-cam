@@ -9,7 +9,6 @@ export function useRecording (
   const recordedData = useRef<Blob[]>([]);
   const [state, setState] = useState<boolean>(false);
   const lastMotionDetectedTime = useRef<number>(0);
-  const captureCanvas1 = useRef<boolean>(false)
   
   const canvas1 = document.createElement("canvas");
   const canvas2 = document.createElement("canvas");
@@ -45,16 +44,18 @@ export function useRecording (
       canvas1.height = height;
       canvas2.width = width;
       canvas2.height = height;
+      
+      let captureCanvas1 = false;
 
       context1.drawImage(videoRef.current, 0, 0, width, height);
 
       const interval = setInterval(async ()=>{
-        if (captureCanvas1.current) {
+        if (captureCanvas1) {
           context1.drawImage(videoRef.current!, 0, 0, width, height);
-          captureCanvas1.current = false;
+          captureCanvas1 = false;
         } else {
           context2.drawImage(videoRef.current!, 0, 0, width, height);
-          captureCanvas1.current = true;
+          captureCanvas1 = true;
         }
 
         const motionDetected = detectMotion(context1, context2);
