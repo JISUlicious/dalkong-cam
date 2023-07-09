@@ -29,11 +29,9 @@ export function Camera () {
   const {localDevice, localStream, remoteDevices, connections} = useConnectionContext();
   const dispatch = useConnectionDispatchContext();
 
-  const ffmpeg = useMemo(() => {
+  const ffmpegLoad = useMemo(() => {
     const ffmpeg = createFFmpeg();
-    ffmpeg.load(); 
-
-    return ffmpeg;
+    return ffmpeg.load().then(() => ffmpeg);
   }, []);
   
   const {cameraId} = useParams();
@@ -48,10 +46,11 @@ export function Camera () {
     }, [localStream]);
 
   const onRecorderStop = useCallback(async (blob: Blob[], recordingId: number) => {
-    if (user && localDevice && ffmpeg.isLoaded()) {
+    if (user && localDevice) {
       const key = `savedVideos/${user.uid}/${localDevice.id}/${recordingId}.mp4`;
       const recordedBlob = new Blob(blob, { type: "video/webm" });
       const sourceBuffer = await recordedBlob.arrayBuffer();
+      const ffmpeg = await ffmpegLoad;
       ffmpeg.FS(
         "writeFile", 
         `${recordingId}.webm`, 
@@ -78,7 +77,7 @@ export function Camera () {
     } else {
       return Promise.reject();
     }
-  }, [user, localDevice, ffmpeg.isLoaded()]);
+  }, [user, localDevice]);
 
   const isRecording = useRecording(videoRef, recorder, onRecorderStop);
 
