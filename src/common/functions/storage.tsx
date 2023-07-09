@@ -51,7 +51,7 @@ export function removeField(key: string, field: string) {
 }
 
 // TODO: export function storeFile
-export function storeFile(key: string, file: Blob) {
+export function storeFile(key: string, file: Uint8Array) {
   return uploadBytes(ref(storage, key), file);
 }
 
