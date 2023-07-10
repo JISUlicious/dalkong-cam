@@ -1,4 +1,17 @@
 @import "Colors";
+@import "node_modules/bootstrap/scss/bootstrap";
+
+:root,
+[data-bs-theme=light] {
+  --bs-border-radius: 0.125rem;
+  --bs-border-radius-sm: 0.1rem;
+  --bs-border-radius-lg: 0.25rem;
+  --bs-border-radius-xl: 0.5rem;
+  --bs-border-radius-xxl: 1rem;
+  --bs-border-radius-2xl: var(--bs-border-radius-xxl);
+  --bs-border-radius-pill: 25rem;
+}
+
 
 .offcanvas-footer {
   padding: var(--bs-offcanvas-padding-y) var(--bs-offcanvas-padding-x);
@@ -30,3 +43,6 @@ a {
   }
 }
 
+.form-control:focus {
+  box-shadow: 0 0 0.2rem $primary;
+}

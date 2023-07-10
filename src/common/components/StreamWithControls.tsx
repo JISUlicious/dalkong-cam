@@ -16,7 +16,7 @@ export const StreamWithControls = forwardRef(function StreamWithControls (
   return (<div className="stream-wrapper col px-0 bg-black">
     <div className="position-relative container-fluid mx-0 px-0">
       <StreamOverlay device={device}/>
-      <video className="stream w-100" ref={videoRef} autoPlay muted={muted} />
+      <video className="stream w-100 d-block" ref={videoRef} autoPlay muted={muted} />
     </div>
     </div>);  
 });
