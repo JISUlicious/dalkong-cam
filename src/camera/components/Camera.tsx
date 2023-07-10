@@ -163,6 +163,7 @@ export function Camera () {
     
   return (<div className="camera body-content">
     <StreamWithControls ref={videoRef} device={localDevice} muted={true}/>
+
     <div className="remote-media">
       <ul>
         {Object.entries(remoteDevices).map(([id, viewer]) => {
