@@ -1,68 +1,32 @@
 @import "Colors";
-@import "Header";
 
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  height: 100vh;
-}
-
-button {
-  background-color: $primary-accent-color;
-  border: 1px solid $secondary-accent-color;
-  border-radius: 2px;
-  color: $secondary-accent-color;
-  margin: 5px;
-  padding: 2px;
-  width: 100px;
-  cursor: pointer;
-  &.text-only-button {
-    background-color: transparent;
-    border: none;
-    color: $secondary-accent-color;
-    width: auto;
-  }
-}
-
-.app-layout {
-  position: fixed;
-  top: 0;
-  left: 0;
-  background-color: $primary-light-color;
-  width: 100%;
-  height: 100%;
-  h1 {
-    margin: 0;
-  }
-}
-
-.app-body {
-  display: block;
-  text-align: center;
-  height: 100%;
-  width: 100%;
-}
-
-.body-content {
-  display: block;
-  justify-content: center;
-  align-items: center;
+.offcanvas-footer {
+  padding: var(--bs-offcanvas-padding-y) var(--bs-offcanvas-padding-x);
   overflow-y: auto;
-  height: 100%;
-  padding: 10px;
 }
 
-.wrapper {
-  display: block;
-  justify-content: space-around;
-  text-align: center;
-  height: 100%;
-  margin: auto 0;
+.btn-link {
+  text-decoration: none;
+  color: var(--bs-body-color);;
 }
 
-.hide {
-  display: none;
+a {
+  text-decoration: none;
 }
+
+.btn {
+  min-width: 100px;
+}
+
+.stream-overlay {
+  .btn {
+    min-width: 0px;
+  }
+}
+
+.remote-media {
+  .btn {
+    min-width: 0px;
+  }
+}
+

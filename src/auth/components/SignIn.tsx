@@ -1,6 +1,3 @@
-import "../../common/styles/App.scss";
-import "../../common/styles/Auth.scss";
-
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -20,12 +17,20 @@ export function SignIn () {
       });
   }
 
-  return <div className="auth body-content">
-    <h1>Sign with Your Account</h1>
+  return <div className="auth body-content container-fluid pt-3">
+    <div className="card">
 
-    <AuthForm buttonText="Sign In" onSubmit={onSubmit} />
+        <h1 className="card-header">Sign-in with Your Account</h1>
+
+      <div className="card-body">
+      <AuthForm buttonText="Sign In" onSubmit={onSubmit} />
+      
+      </div>
+    </div>
+    
+
     <Link to="/sign-up">
-      <button className={"sign-up text-only-button"}>
+      <button type="button" className="btn btn-link mx-auto d-block">
         or click here to sign up for new account
       </button>
     </Link>
