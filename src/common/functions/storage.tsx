@@ -14,7 +14,7 @@ import {
 } from "firebase/firestore";
 
 import { db, storage } from "./firebaseInit";
-import { ref, uploadBytes } from "firebase/storage";
+import { UploadMetadata, ref, uploadBytes } from "firebase/storage";
 
 export function getItem(
   key: string, 
@@ -51,7 +51,11 @@ export function removeField(key: string, field: string) {
 }
 
 // TODO: export function storeFile
-export function storeFile(key: string, file: Uint8Array) {
-  return uploadBytes(ref(storage, key), file);
+export function storeFile(key: string, file: Uint8Array, contentType: string | null = null) {
+  return uploadBytes(
+    ref(storage, key), 
+    file, 
+    contentType ? {contentType: contentType} as UploadMetadata : undefined
+    );
 }
 

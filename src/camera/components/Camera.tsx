@@ -60,7 +60,7 @@ export function Camera () {
       await ffmpeg.run('-i', `${recordingId}.webm`, `${recordingId}.mp4`);
       const output = ffmpeg.FS("readFile", `${recordingId}.mp4`);
 
-      return storeFile(key, output)
+      return storeFile(key, output, 'video/mp4')
         .then(result => getDownloadURL(ref(storage, result.ref.fullPath))
           .then(url => [url, result] as [string, UploadResult]))
         .then(([url, result]) => {
