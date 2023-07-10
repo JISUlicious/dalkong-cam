@@ -1,5 +1,3 @@
-import "../../common/styles/Camera.scss";
-
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { collection, doc, getDoc, onSnapshot, query, where } from "firebase/firestore";
 
@@ -18,11 +16,13 @@ import { getMedia } from "../../common/functions/getMedia";
 import { useParams } from "react-router-dom";
 import { addItem, getItem, removeItem, removeItems, storeFile, updateItem } from "../../common/functions/storage";
 import { StreamWithControls } from "../../common/components/StreamWithControls";
+
 import { useRecording } from "../../common/hooks/useRecording";
 import { VideosList } from "../../common/components/VideosList";
 import { UploadResult, getDownloadURL, ref } from "firebase/storage";
 import { useTimeOrderedVideos } from "../../common/hooks/useTimeOrderedVideos";
 import { createFFmpeg } from "@ffmpeg/ffmpeg";
+
 
 export function Camera () {
   const {user} = useAuthContext();
@@ -157,25 +157,17 @@ export function Camera () {
     }
   }, [user, !!localDevice, !!localStream]);
 
-  const videosData = useTimeOrderedVideos(
-    where("deviceId", "==", cameraId), 
-    );
-    
-  return (<div className="camera body-content">
-    <StreamWithControls ref={videoRef} device={localDevice} muted={true}/>
+  return (<div className="camera body-content container-fluid w-100 px-0">
+    <div className="stream container-fluid px-0 position-relative">
+      <StreamWithControls ref={videoRef} device={localDevice} muted={true}/>
+      <div className="remote-media position-absolute bottom-0 row mx-0 p-1 justify-content-center">
+          {Object.entries(remoteDevices).map(([id, viewer]) => {
+            return (<div key={id} className="col-auto px-1">
+              <AudioItem viewer={viewer} />
+            </div>);
+          })}
+      </div>
 
-    <div className="remote-media">
-      <ul>
-        {Object.entries(remoteDevices).map(([id, viewer]) => {
-          return (<li key={id}>
-            <AudioItem viewer={viewer} />
-          </li>);
-        })}
-      </ul>
-    </div>
-    <div className="saved-videos local">
-      list of videos
-      <VideosList videos={videosData} />
     </div>
   </div>);
 }

@@ -42,15 +42,19 @@ export function CreateViewer () {
     });
   }
 
-  return <div className="create-viewer body-content">
-    <h1>CreateViewer</h1>
-    <form onSubmit={onSubmit}>
-      <label>
-        <input onChange={onChange} value={input} placeholder="Viewer Name" required />
-      </label>
-      <button type="submit">
-        Submit
-      </button>
-    </form>
+  return <div className="container-fluid pt-3">
+    <div className="card">
+      <h1 className="card-header">CreateViewer</h1>
+      <div className="card-body">       
+        <form onSubmit={onSubmit}>
+          <div className="input-group mb-3">
+            <input className="form-control" onChange={onChange} value={input} placeholder="Viewer Name" required />
+            <button type="submit" className="btn btn-outline-secondary" id="button-addon2">
+              Start Camera
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>    
   </div>;
 }

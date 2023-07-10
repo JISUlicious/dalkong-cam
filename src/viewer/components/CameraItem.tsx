@@ -22,7 +22,6 @@ export function CameraItem({camera}: CameraItemProps) {
   const videosData = useTimeOrderedVideos(
     where("deviceId", "==", camera.id), 
     );
-  console.log(videosData);
 
   const streamRef = useRef<HTMLVideoElement>(null);
   const cameraItemRef = useRef<HTMLDivElement>(null);
@@ -39,13 +38,13 @@ export function CameraItem({camera}: CameraItemProps) {
   }, [isFullscreen]);
 
   useEffect(() => {
-    if (cameraItemRef.current) {
-      cameraItemRef.current.addEventListener("click", onClickStream);
+    if (streamRef.current) {
+      streamRef.current.addEventListener("click", onClickStream);
       return () => {
-        cameraItemRef.current?.removeEventListener("click", onClickStream);
+        streamRef.current?.removeEventListener("click", onClickStream);
       }
     }
-  }, [cameraItemRef, isFullscreen]);
+  }, [streamRef, isFullscreen]);
 
   useEffect(() => {
     if (remoteStreams?.[camera?.id]) {
@@ -55,7 +54,7 @@ export function CameraItem({camera}: CameraItemProps) {
     }
   }, [remoteStreams?.[camera?.id]]);
   
-  return (<div className={`camera-item ${isFullscreen ? "fullscreen" : ""}`} ref={cameraItemRef}>
+  return (<div className={`camera-item container ${isFullscreen ? "overflow-y-auto" : ""}`} ref={cameraItemRef}>
     <StreamWithControls ref={streamRef} device={camera} />
     { isFullscreen ? <VideosList videos={videosData} /> : null }
   </div>);

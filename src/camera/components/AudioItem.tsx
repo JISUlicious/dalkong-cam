@@ -1,5 +1,3 @@
-import "../../common/styles/Camera.scss";
-
 import React, { useMemo } from "react";
 
 import { AudioStream } from "./AudioStream";
@@ -18,8 +16,8 @@ export function AudioItem ({viewer}: RemoteViewer) {
     const hslColorKey = `hsl(${randomHue} 80% 80%)`;
     return hslColorKey;
   }, [viewer]);
-  return <div className="remote-viewer" style={{backgroundColor:hslColorKey}}>
+  return <span className="badge" style={{backgroundColor: hslColorKey, color: "black"}}>
     {viewer.data()?.deviceName.charAt(0)}
     <AudioStream stream={remoteStreams?.[viewer.id]} />
-  </div>
+  </span>
 }
