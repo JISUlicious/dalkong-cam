@@ -1,33 +1,33 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-import { useAuthContext } from "../contexts/AuthContext";
-
 export function Main () {
-
-  const { user } = useAuthContext();
 
   return <div className="body-content">
     <div className="container-fluid pt-3 text-center">
-      <div className="row">
-        <h1>Hello, { user?.email }</h1>
-      </div>
-      <div className="row pb-3">
+      <div className="row pt-3">
         <h4>Use this device as...</h4>
       </div>
-      <div className="row gx-5 mx-auto">
-        <div className="col">
+      <div className="row gx-3 mx-auto justify-content-center">
+        <div className="col py-1">
           <Link to="/camera">
-            <button className="btn btn-primary float-end">
-              Camera
-            </button>
+            <div className="card">
+              <img className="card-img-bottom" alt="camera" src="./camera.jpeg" />
+            
+              <div className="card-body btn btn-primary px-2 py-1 text-body w-100">
+                Camera
+              </div>
+            </div>
           </Link>
         </div>
-        <div className="col">
-          <Link to={"/viewer"}>
-            <button className="btn btn-primary float-start">
-              Viewer
-            </button>
+        <div className="col py-1">
+          <Link to="/viewer">
+            <div className="card">
+              <img className="card-img-bottom" alt="viewer" src="viewer.jpg" />
+              <div className="card-body btn btn-primary px-2 py-1 text-body w-100">
+                viewer
+              </div>
+            </div>
           </Link>
         </div>
       </div>

@@ -37,8 +37,8 @@ export function Sidebar () {
     tabIndex={-1}
     aria-labelledby="offcanvasNavbarLabel"
   >
-    <div className="offcanvas-header">
-      <h5 className="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
+    <div className="offcanvas-header justify-content-end">
+      {/* <h5 className="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5> */}
       <button type="button" className="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div className="offcanvas-body">
