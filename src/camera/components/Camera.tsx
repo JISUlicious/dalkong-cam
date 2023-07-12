@@ -158,12 +158,17 @@ export function Camera () {
   return (<div className="camera body-content container-fluid w-100 px-0">
     <div className="stream container-fluid px-0 position-relative">
       <StreamWithControls ref={videoRef} device={localDevice} muted={true}/>
-      <div className="remote-media position-absolute bottom-0 row mx-0 p-1 justify-content-center">
+      <div className="remote-media position-absolute bottom-0 row mx-0 p-1 justify-content-center w-100">
           {Object.entries(remoteDevices).map(([id, viewer]) => {
             return (<div key={id} className="col-auto px-1">
               <AudioItem viewer={viewer} />
             </div>);
           })}
+          <div className="col-auto d-flex flex-grow-1">
+            <div className="container-fluid text-white text-end fs-6">
+              {localDevice?.data()?.deviceName}
+            </div>
+          </div>
       </div>
 
     </div>

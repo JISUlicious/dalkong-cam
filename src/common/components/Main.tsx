@@ -14,7 +14,7 @@ export function Main () {
             <div className="card">
               <img className="card-img-bottom" alt="camera" src="./camera.jpeg" />
             
-              <div className="card-body btn btn-primary px-2 py-1 text-body w-100">
+              <div className="card-body btn btn-primary px-2 py-1 w-100">
                 Camera
               </div>
             </div>
@@ -24,7 +24,7 @@ export function Main () {
           <Link to="/viewer">
             <div className="card">
               <img className="card-img-bottom" alt="viewer" src="viewer.jpg" />
-              <div className="card-body btn btn-primary px-2 py-1 text-body w-100">
+              <div className="card-body btn btn-primary px-2 py-1 w-100">
                 viewer
               </div>
             </div>

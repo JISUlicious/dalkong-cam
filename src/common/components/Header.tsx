@@ -3,7 +3,7 @@ import { FiMenu } from "react-icons/fi";
 
 export function Header () {
   
-  return <nav className="navbar bg-primary sticky-top">
+  return <nav className="navbar bg-primary text-white sticky-top">
     <div className="container-fluid">
       <div className="navbar-brand">
         <div className="fs-6">Dalkong-Cam</div>

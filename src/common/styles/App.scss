@@ -13,6 +13,9 @@
   --bs-border-radius-pill: 37.5rem;
 }
 
+[data-bs-theme=dark] {
+  --bs-body-color: #ffffff;
+}
 
 .offcanvas-footer {
   padding: var(--bs-offcanvas-padding-y) var(--bs-offcanvas-padding-x);
@@ -30,6 +33,10 @@ a {
 
 .btn {
   min-width: 100px;
+  &.icon-button {
+    padding: 0.25rem 0.5rem;
+    font-size: 1rem;
+  }
 }
 
 .stream-overlay {
@@ -124,4 +131,11 @@ h6, .h6 {
   background-color: rgba(var(--bs-emphasis-color-rgb), 0.05);
   outline: 0;
   box-shadow: 0 0 0.2rem var(--bs-navbar-toggler-focus-width);
+}
+
+
+.form-select {
+  padding: 0.25rem 2.25rem 0.25rem 0.75rem;
+  font-size: 1rem;
+  font-weight: 300;
 }

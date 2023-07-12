@@ -13,7 +13,7 @@ export function AudioItem ({viewer}: RemoteViewer) {
   const {remoteStreams} = useConnectionContext();
   const hslColorKey = useMemo(() => {
     const randomHue = Math.floor(Math.random() * 360);
-    const hslColorKey = `hsl(${randomHue} 80% 80%)`;
+    const hslColorKey = `hsl(${randomHue} 80% 80% / 50%)`;
     return hslColorKey;
   }, [viewer]);
   return <span className="badge" style={{backgroundColor: hslColorKey, color: "black"}}>
