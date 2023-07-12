@@ -78,9 +78,6 @@ export function StreamOverlay({device}: VideoOverlayProps) {
         </div>
         : null
       }
-      <div className="col-auto justify-content-end d-flex align-items-center">
-        <h5 className="text-end my-0 text-white">{device?.data()?.deviceName}</h5>
-      </div>
     </div>
   </div>);
 }

@@ -119,9 +119,11 @@ export function Viewer () {
     }
   }, [user, localDevice, !!localStream]);
 
-  return (<div className="viewer body-content container-fluid w-100 p-1 mx-0">
-    <h6 className="text-center">{Object.keys(remoteDevices).length} Camera{Object.keys(remoteDevices).length < 2 ? "" : "s"} Online</h6>
-    <div className={`list-cameras-wrapper row mx-0 p-3 row-cols-${rowColValue}`}>
+  return (<div className="viewer body-content container-fluid w-100 pt-3 p-1 mx-0">
+    <h6 className="text-center">
+      {Object.keys(remoteDevices).length} Camera{Object.keys(remoteDevices).length < 2 ? "" : "s"} Online
+    </h6>
+    <div className={`list-cameras-wrapper row mx-0 p-1 row-cols-${rowColValue}`}>
         {Object.entries(remoteDevices).map(([id, camera]) => {
           return (<div key={id} className="col py-2">
             <CameraItem camera={camera} />
