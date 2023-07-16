@@ -76,8 +76,8 @@ export function useRecording (
           recordingId.current = lastMotionDetectedTime.current;
         } else if (timeSinceLastMotion > recordingBufferTime && recorder?.state === "recording") {
           stopRecording(recorder)
-            .then(() => onRecorderStop(recordedData.current, recordingId.current))
-            .finally(() => {
+            .then(() => {
+              onRecorderStop(recordedData.current, recordingId.current);
               recordedData.current = [];
             });
         }
