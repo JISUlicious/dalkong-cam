@@ -38,8 +38,7 @@ export function Camera () {
 
   const recorder = useMemo(() => {
     if (localStream) {
-      const recorder = new MediaRecorder(localStream);
-      return recorder;
+      return new MediaRecorder(localStream);
     } 
     }, [localStream]);
 
