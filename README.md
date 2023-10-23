@@ -6,7 +6,7 @@
 
 - 2023-04~2023-07
 - Frontend: Typescript, React.JS
-- Backend: Firebase
+- Backend: Firebase, AWS S3
 
 ## Tech
 
