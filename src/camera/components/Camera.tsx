@@ -18,9 +18,7 @@ import { addItem, getItem, removeItem, removeItems, storeFile, updateItem } from
 import { StreamWithControls } from "../../common/components/StreamWithControls";
 
 import { useRecording } from "../../common/hooks/useRecording";
-import { VideosList } from "../../common/components/VideosList";
 import { UploadResult, getDownloadURL, ref } from "firebase/storage";
-import { useTimeOrderedVideos } from "../../common/hooks/useTimeOrderedVideos";
 import { createFFmpeg } from "@ffmpeg/ffmpeg";
 
 
@@ -40,8 +38,7 @@ export function Camera () {
 
   const recorder = useMemo(() => {
     if (localStream) {
-      const recorder = new MediaRecorder(localStream);
-      return recorder;
+      return new MediaRecorder(localStream);
     } 
     }, [localStream]);
 
@@ -160,12 +157,17 @@ export function Camera () {
   return (<div className="camera body-content container-fluid w-100 px-0">
     <div className="stream container-fluid px-0 position-relative">
       <StreamWithControls ref={videoRef} device={localDevice} muted={true}/>
-      <div className="remote-media position-absolute bottom-0 row mx-0 p-1 justify-content-center">
+      <div className="remote-media position-absolute bottom-0 row mx-0 p-1 justify-content-center w-100">
           {Object.entries(remoteDevices).map(([id, viewer]) => {
             return (<div key={id} className="col-auto px-1">
               <AudioItem viewer={viewer} />
             </div>);
           })}
+          <div className="col-auto d-flex flex-grow-1">
+            <div className="container-fluid text-white text-end fs-6">
+              {localDevice?.data()?.deviceName}
+            </div>
+          </div>
       </div>
 
     </div>

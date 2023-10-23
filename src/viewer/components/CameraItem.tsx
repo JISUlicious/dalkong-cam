@@ -54,7 +54,7 @@ export function CameraItem({camera}: CameraItemProps) {
     }
   }, [remoteStreams?.[camera?.id]]);
   
-  return (<div className={`camera-item container ${isFullscreen ? "overflow-y-auto" : ""}`} ref={cameraItemRef}>
+  return (<div className={`camera-item container px-0 ${isFullscreen ? "overflow-y-auto" : ""}`} ref={cameraItemRef}>
     <StreamWithControls ref={streamRef} device={camera} />
     { isFullscreen ? <VideosList videos={videosData} /> : null }
   </div>);

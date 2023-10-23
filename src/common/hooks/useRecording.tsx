@@ -23,7 +23,7 @@ export function useRecording (
     });
     console.log("recording stop");
     recorder.stop();
-
+    setIsRecording(false);
     return stopped;
   }
   
@@ -47,14 +47,16 @@ export function useRecording (
       canvas2.width = width;
       canvas2.height = height;
 
-      const drawImageOnContext1 = false;
+      let drawImageOnContext1 = false;
       context1.drawImage(videoRef.current, 0, 0, width, height);
 
       const interval = setInterval(async ()=>{
         if (drawImageOnContext1) {
           context1.drawImage(videoRef.current!, 0, 0, width, height);
+          drawImageOnContext1 = !drawImageOnContext1
         } else {
           context2.drawImage(videoRef.current!, 0, 0, width, height);
+          drawImageOnContext1 = !drawImageOnContext1
         }
 
         const motionDetected = detectMotion(context1, context2);
@@ -74,10 +76,9 @@ export function useRecording (
           recordingId.current = lastMotionDetectedTime.current;
         } else if (timeSinceLastMotion > recordingBufferTime && recorder?.state === "recording") {
           stopRecording(recorder)
-            .then(() => onRecorderStop(recordedData.current, recordingId.current))
-            .finally(() => {
+            .then(() => {
+              onRecorderStop(recordedData.current, recordingId.current);
               recordedData.current = [];
-              setIsRecording(false);
             });
         }
       }, captureInterval);
