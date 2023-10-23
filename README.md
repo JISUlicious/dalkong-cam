@@ -5,13 +5,11 @@
 ## WebRTC based home security application
 
 - 2023-04~2023-07
-- Frontend: Typescript, React.JS
-- Backend: Firebase, AWS S3
 
 ## Tech
 
 - Typescript, React.JS, Bootstrap
-- Firebase, WebRTC
+- Firebase, WebRTC, AWS S3
 
 ## Functionalities
 
