@@ -1,6 +1,6 @@
 # dalkong-cam
 
-[Dalkong-Cam](http://dalkong-cam.s3-website.ap-northeast-2.amazonaws.com/)
+[Dalkong-Cam](https://dv4m5ajprpkkf.cloudfront.net/)
 
 ## WebRTC based home security application
 
