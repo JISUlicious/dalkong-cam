@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { collection, doc, getDoc, onSnapshot, query } from "firebase/firestore";
 
-import { CameraItem } from "./CameraItem";
+import { CameraItem } from "../components/CameraItem";
 
 import { useAuthContext } from "../../common/contexts/AuthContext";
 import { 

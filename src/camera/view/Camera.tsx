@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { collection, doc, getDoc, onSnapshot, query, where } from "firebase/firestore";
 
-import { AudioItem } from "./AudioItem";
+import { AudioItem } from "../components/AudioItem";
 
 import { useAuthContext } from "../../common/contexts/AuthContext";
 import { 
@@ -20,6 +20,9 @@ import { StreamWithControls } from "../../common/components/StreamWithControls";
 import { useRecording } from "../../common/hooks/useRecording";
 import { UploadResult, getDownloadURL, ref } from "firebase/storage";
 import { createFFmpeg } from "@ffmpeg/ffmpeg";
+import { useCameraDocSubscription } from "../hook/useCameraDocSubscription";
+import { useLocalStream } from "../hook/useLocalStream";
+import { useHandleRefrash } from "../hook/useHandleRefrash";
 
 
 export function Camera () {
@@ -27,7 +30,7 @@ export function Camera () {
   const {localDevice, localStream, remoteDevices, connections} = useConnectionContext();
   const dispatch = useConnectionDispatchContext();
 
-  const ffmpegLoad = useMemo(() => {
+  const ffmpegLoad = useMemo(async () => {
     const ffmpeg = createFFmpeg();
     return ffmpeg.load().then(() => ffmpeg);
   }, []);
@@ -99,60 +102,9 @@ export function Camera () {
     }
   }, [localStream]);
 
-  useEffect(() => {
-    if (!localDevice && user) {
-      getItem(`users/${user.uid}/cameras/${cameraId}/connections`)
-        .then(snapshot => {
-          snapshot.forEach(doc => {
-            removeItems(`${doc.ref.path}/offeringCandidates`);
-            removeItems(`${doc.ref.path}/answeringCandidates`);
-            removeItem(doc.ref.path);
-          });
-        });
-
-      getDoc(doc(db, `users/${user.uid}/cameras/${cameraId}`))
-        .then(doc => {
-          const updatedDoc = doc.data()!;
-          updatedDoc.sessionId = Date.now();
-          updateItem(`users/${user.uid}/cameras/${cameraId}`, updatedDoc);
-          dispatch(ConnectionActionCreator.setLocalDevice(doc as DeviceState));
-        });
-    }
-  }, [user, localDevice]);
-
-  useEffect(() => {
-    if (!localStream?.active) {
-      getMedia().then(localMedia => {
-        dispatch(ConnectionActionCreator.setLocalStream(localMedia));
-      });
-    }
-    return (() => {
-      dispatch(ConnectionActionCreator.setLocalDevice(null));
-      dispatch(ConnectionActionCreator.setLocalStream(null));
-    });
-  }, []);
-  
-  useEffect(() => {
-    if (user && localDevice && localStream) {
-      if (Object.keys(connections).length === 0) {
-        const key = `users/${user.uid}/cameras/${localDevice.id}`;
-        const viewersQuery = query(
-          collection(db, key, "connections")
-        );
-
-        const unsubscribeViewersCollection = onSnapshot(viewersQuery, async (snapshot) => {
-          snapshot.docChanges().forEach(async (change) => {
-            if (change.type === "added") {
-              dispatch(ConnectionActionCreator.addRemoteDevice(change.doc as DeviceState));
-            } else if (change.type === "removed") {
-              dispatch(ConnectionActionCreator.removeRemoteDevice(change.doc.id));
-            }
-          });
-        }, (error) => console.log(error));
-        return (() => unsubscribeViewersCollection());
-      }
-    }
-  }, [user, !!localDevice, !!localStream]);
+  useLocalStream(localStream, dispatch);
+  useHandleRefrash(user, localDevice, cameraId, db, dispatch);
+  useCameraDocSubscription(user, localDevice, localStream, connections, db, dispatch);
 
   return (<div className="camera body-content container-fluid w-100 px-0">
     <div className="stream container-fluid px-0 position-relative">
@@ -169,7 +121,6 @@ export function Camera () {
             </div>
           </div>
       </div>
-
     </div>
   </div>);
 }
