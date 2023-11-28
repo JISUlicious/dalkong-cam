@@ -11,8 +11,8 @@ import {
 
 import { addItem } from "../../common/functions/storage";
 
-export function CreateViewer () {
-  const localValue = localStorage.getItem("viewerDeviceName");
+export function CreateCamera () {
+  const localValue = localStorage.getItem("cameraDeviceName");
   const initialValue = localValue ? localValue : "";
 
   const [input, setInput] = useState(initialValue);
@@ -26,29 +26,29 @@ export function CreateViewer () {
 
   function onSubmit (event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    const key = `users/${user?.uid}/viewers`;
+    const key = `users/${user?.uid}/cameras`;
     const sessionId = Date.now();
-    const viewerInfo = {
+    const cameraInfo = {
       deviceName: input,
-      deviceType: "viewer",
+      deviceType: "camera",
       sessionId: sessionId
     };
-    addItem(key, viewerInfo).then(docRef => {
+    addItem(key, cameraInfo).then(docRef => {
       getDoc(docRef).then(doc => {
         dispatch(ConnectionActionCreator.setLocalDevice(doc as DeviceState));
-        navigate(`/viewer/${docRef.id}`);
+        navigate(`/camera/${docRef.id}`);
+        localStorage.setItem("deviceName", input);
       });
     });
   }
 
-  return <div className="container-fluid pt-3">
+  return <div className="create-camera body-content container-fluid pt-3">
     <div className="card">
-      <h1 className="card-header">CreateViewer</h1>
+      <div className="card-header fs-5">CreateCamera</div>
       <div className="card-body">       
         <form onSubmit={onSubmit}>
           <div className="input-group mb-3">
-            <input className="form-control" onChange={onChange} value={input} placeholder="Viewer Name" required />
+            <input className="form-control" onChange={onChange} value={input} placeholder="Camera Name" required />
             <button type="submit" className="btn btn-outline-secondary" id="button-addon2">
               Start Camera
             </button>

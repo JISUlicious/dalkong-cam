@@ -1,7 +1,6 @@
 import React, { useMemo } from "react";
 
 import { AudioStream } from "./AudioStream";
-
 import { DeviceState, useConnectionContext } from "../../common/contexts/ConnectionContext";
 
 

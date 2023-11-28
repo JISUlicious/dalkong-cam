@@ -1,10 +1,11 @@
 import { RefObject, useEffect, useRef, useState } from "react";
 import { detectMotion } from "../functions/detectMotion";
+import { DocumentReference } from "firebase/firestore";
 
 export function useRecording (
   videoRef: RefObject<HTMLVideoElement>,
   recorder: MediaRecorder | undefined,
-  onRecorderStop: (blob: Blob[], recordingId: number) => Promise<any>
+  onRecorderStop: (blob: Blob[], recordingId: number) => Promise<DocumentReference<object>>
   ): boolean {
   const recordedData = useRef<Blob[]>([]);
   const [isRecording, setIsRecording] = useState<boolean>(false);
