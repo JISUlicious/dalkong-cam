@@ -4,10 +4,10 @@ import { collection, doc, getDoc, onSnapshot, query } from "firebase/firestore";
 import { CameraItem } from "../components/CameraItem";
 
 import { useAuthContext } from "../../common/contexts/AuthContext";
-import { 
+import {
   ConnectionActionCreator,
   DeviceState,
-  useConnectionContext, 
+  useConnectionContext,
   useConnectionDispatchContext
 } from "../../common/contexts/ConnectionContext";
 
@@ -18,18 +18,18 @@ import { getItem, removeItem, removeItems } from "../../common/functions/storage
 
 
 
-export function Viewer () {
+export function Viewer() {
 
-  const {user} = useAuthContext();
-  
-  const {localStream, localDevice, remoteDevices} = useConnectionContext();
+  const { user } = useAuthContext();
+
+  const { localStream, localDevice, remoteDevices } = useConnectionContext();
 
   const [rowColValue, setRowColValue] = useState<number>(3);
 
   useEffect(() => {
-    function setRowColFromWidth () {
+    function setRowColFromWidth() {
       const width = window.innerWidth;
-      if (width >= 1400 ) {
+      if (width >= 1400) {
         setRowColValue(3);
       } else if (width >= 768) {
         setRowColValue(2);
@@ -45,13 +45,13 @@ export function Viewer () {
   const recordingStates = useRef<Record<string, boolean | undefined>>();
 
   useEffect(() => {
-    const sessionIds = {} as Record<string, number | undefined>;
+    const sessionIds: Record<string, number | undefined> = {};
     Object.entries(remoteDevices).map(([id, device]) => {
       sessionIds[id] = device.data()?.sessionId;
     });
     sessions.current = sessionIds;
 
-    const isRecordings = {} as Record<string, boolean | undefined>;
+    const isRecordings: Record<string, boolean | undefined> = {};
     Object.entries(remoteDevices).map(([id, device]) => {
       isRecordings[id] = device.data()?.isRecording;
     });
@@ -60,7 +60,7 @@ export function Viewer () {
 
   const dispatch = useConnectionDispatchContext();
 
-  const {viewerId} = useParams();
+  const { viewerId } = useParams();
   useEffect(() => {
     if (!localDevice && user) {
       getItem(`users/${user.uid}/cameras`)
@@ -100,6 +100,7 @@ export function Viewer () {
       const camerasQuery = query(collection(db, key));
       const unsubscribeCamerasCollection = onSnapshot(camerasQuery, async snapshot => {
         snapshot.docChanges().map(async (change) => {
+          console.log(change.type)
           if (change.type === "added") {
             dispatch(ConnectionActionCreator.addRemoteDevice(change.doc as DeviceState));
           } else if (change.type === "removed") {
@@ -111,25 +112,26 @@ export function Viewer () {
             } else if (recordingStates.current?.[docId] !== change.doc.data().isRecording) {
               dispatch(ConnectionActionCreator.updateRemoteDevice(change.doc as DeviceState));
             }
-          } 
+          }
         });
-      }, (error) => console.log(error));  
-      
+      }, (error) => console.log(error));
+
       return (() => unsubscribeCamerasCollection());
     }
   }, [user, localDevice, !!localStream]);
+
+  console.log(remoteDevices)
 
   return (<div className="viewer body-content container-fluid w-100 pt-3 p-1 mx-0">
     <h6 className="text-center">
       {Object.keys(remoteDevices).length} Camera{Object.keys(remoteDevices).length < 2 ? "" : "s"} Online
     </h6>
     <div className={`list-cameras-wrapper row mx-0 p-1 row-cols-${rowColValue}`}>
-        {Object.entries(remoteDevices).map(([id, camera]) => {
-          return (<div key={id} className="col py-2">
-            <CameraItem camera={camera} />
-          </div>);
-        })}
-
+      {Object.entries(remoteDevices).map(([id, camera]) => {
+        return (<div key={id} className="col py-2">
+          <CameraItem camera={camera} />
+        </div>);
+      })}
     </div>
   </div>);
 }

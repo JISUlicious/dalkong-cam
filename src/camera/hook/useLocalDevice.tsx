@@ -4,7 +4,7 @@ import { Firestore, doc, getDoc } from "firebase/firestore";
 import { User } from "firebase/auth";
 import { Action, ConnectionActionCreator, DeviceState } from "../../common/contexts/ConnectionContext";
 
-export function useHandleRefrash(
+export function useLocalDevice(
   user: User | null,
   localDevice: DeviceState | null,
   cameraId: string | undefined,

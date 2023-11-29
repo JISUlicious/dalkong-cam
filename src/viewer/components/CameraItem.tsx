@@ -47,6 +47,9 @@ export function CameraItem({camera}: CameraItemProps) {
   }, [streamRef, isFullscreen]);
 
   useEffect(() => {
+    console.log(camera?.id, remoteStreams?.[camera?.id])
+    const tracks = remoteStreams?.[camera?.id]?.getTracks()
+    tracks?.forEach(track => console.log(camera?.id, track))
     if (remoteStreams?.[camera?.id]) {
       if (!streamRef.current || !remoteStreams?.[camera?.id])
         return;

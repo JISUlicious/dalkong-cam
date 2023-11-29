@@ -1,20 +1,19 @@
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
-import { collection, doc, getDoc, onSnapshot, query, where } from "firebase/firestore";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
 
 import { AudioItem } from "../components/AudioItem";
 
 import { useAuthContext } from "../../common/contexts/AuthContext";
-import { 
+import {
   ConnectionActionCreator,
-  DeviceState, 
-  useConnectionContext, 
+  DeviceState,
+  useConnectionContext,
   useConnectionDispatchContext
 } from "../../common/contexts/ConnectionContext";
 
 import { db, storage } from "../../common/functions/firebaseInit";
-import { getMedia } from "../../common/functions/getMedia";
-import { useParams } from "react-router-dom";
-import { addItem, getItem, removeItem, removeItems, storeFile, updateItem } from "../../common/functions/storage";
+import { Link, useParams } from "react-router-dom";
+import { addItem, storeFile, updateItem } from "../../common/functions/storage";
 import { StreamWithControls } from "../../common/components/StreamWithControls";
 
 import { useRecording } from "../../common/hooks/useRecording";
@@ -22,28 +21,30 @@ import { UploadResult, getDownloadURL, ref } from "firebase/storage";
 import { createFFmpeg } from "@ffmpeg/ffmpeg";
 import { useCameraDocSubscription } from "../hook/useCameraDocSubscription";
 import { useLocalStream } from "../hook/useLocalStream";
-import { useHandleRefrash } from "../hook/useHandleRefrash";
+import { useLocalDevice } from "../hook/useLocalDevice";
 
 
-export function Camera () {
-  const {user} = useAuthContext();
-  const {localDevice, localStream, remoteDevices, connections} = useConnectionContext();
+export function Camera() {
+  const { user } = useAuthContext();
+  const { localDevice, localStream, remoteDevices, connections } = useConnectionContext();
   const dispatch = useConnectionDispatchContext();
+
+  const [isConnectionClosed, setIsConnectionClosed] = useState(false);
 
   const ffmpegLoad = useMemo(async () => {
     const ffmpeg = createFFmpeg();
     return ffmpeg.load().then(() => ffmpeg);
   }, []);
-  
-  const {cameraId} = useParams();
+
+  const { cameraId } = useParams();
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const recorder = useMemo(() => {
     if (localStream) {
       return new MediaRecorder(localStream);
-    } 
-    }, [localStream]);
+    }
+  }, [localStream]);
 
   const onRecorderStop = useCallback(async (blob: Blob[], recordingId: number) => {
     if (user && localDevice) {
@@ -52,11 +53,11 @@ export function Camera () {
       const sourceBuffer = await recordedBlob.arrayBuffer();
       const ffmpeg = await ffmpegLoad;
       ffmpeg.FS(
-        "writeFile", 
-        `${recordingId}.webm`, 
+        "writeFile",
+        `${recordingId}.webm`,
         new Uint8Array(sourceBuffer, 0, sourceBuffer.byteLength)
-        );
-      
+      );
+
       await ffmpeg.run('-i', `${recordingId}.webm`, `${recordingId}.mp4`);
       const output = ffmpeg.FS("readFile", `${recordingId}.mp4`);
 
@@ -83,6 +84,19 @@ export function Camera () {
 
   useEffect(() => {
     if (user && localDevice) {
+      const key = `users/${user.uid}/cameras/${localDevice.id}`;
+      const unsubscribeCameraDoc = onSnapshot(doc(db, key), async (snapshot) => {
+        if (!snapshot.exists()) {
+          dispatch(ConnectionActionCreator.setLocalDevice(null));
+          setIsConnectionClosed(true);
+        }
+      })
+      return (() => unsubscribeCameraDoc());
+    }
+  })
+
+  useEffect(() => {
+    if (user && localDevice) {
       getDoc(doc(db, `users/${user.uid}/cameras/${localDevice.id}`))
         .then(doc => {
           const updatedDoc = doc.data()!;
@@ -93,7 +107,7 @@ export function Camera () {
         .then(doc => dispatch(ConnectionActionCreator.setLocalDevice(doc as DeviceState)));
     }
   }, [user, !!localDevice, isRecording]);
-  
+
   useEffect(() => {
     if (localStream) {
       if (!videoRef.current || !localStream)
@@ -103,13 +117,29 @@ export function Camera () {
   }, [localStream]);
 
   useLocalStream(localStream, dispatch);
-  useHandleRefrash(user, localDevice, cameraId, db, dispatch);
+  useLocalDevice(user, localDevice, cameraId, db, dispatch);
   useCameraDocSubscription(user, localDevice, localStream, connections, db, dispatch);
 
-  return (<div className="camera body-content container-fluid w-100 px-0">
-    <div className="stream container-fluid px-0 position-relative">
-      <StreamWithControls ref={videoRef} device={localDevice} muted={true}/>
-      <div className="remote-media position-absolute bottom-0 row mx-0 p-1 justify-content-center w-100">
+  return (isConnectionClosed
+    ? <div className="camera body-content container-fluid w-100 px-0">
+      <div className="container-fluid px-0 position-relative">
+        <div className="row p-5 text-center">
+          <div className="fs-5">Connection Closed</div>
+        </div>
+        <div  className="row p-3 text-center">
+          <Link to={'/'}>
+            <div className="btn btn-primary px-2 py-1 w-50">
+              {'back to Main'}
+            </div>
+          </Link>
+        </div>
+      </div>
+
+    </div>
+    : (<div className="camera body-content container-fluid w-100 px-0">
+      <div className="stream container-fluid px-0 position-relative">
+        <StreamWithControls ref={videoRef} device={localDevice} muted={true} />
+        <div className="remote-media position-absolute bottom-0 row mx-0 p-1 justify-content-center w-100">
           {Object.entries(remoteDevices).map(([id, viewer]) => {
             return (<div key={id} className="col-auto px-1">
               <AudioItem viewer={viewer} />
@@ -120,7 +150,7 @@ export function Camera () {
               {localDevice?.data()?.deviceName}
             </div>
           </div>
+        </div>
       </div>
-    </div>
-  </div>);
+    </div>));
 }
