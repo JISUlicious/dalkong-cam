@@ -1,7 +1,7 @@
 import { User } from "firebase/auth";
 import { useEffect } from "react";
 import { Action, ConnectionActionCreator, Connections, DeviceState } from "../../common/contexts/ConnectionContext";
-import { Firestore, collection, onSnapshot, query } from "firebase/firestore";
+import { Firestore, collection, doc, onSnapshot, query } from "firebase/firestore";
 
 export function useCameraDocSubscription(
   user: User | null, 
