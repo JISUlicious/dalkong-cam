@@ -13,7 +13,8 @@ export function useLocalDevice(
 ) {
   useEffect(() => {
     if (!localDevice && user) {
-      getItem(`users/${user.uid}/cameras/${cameraId}/connections`)
+      const key = `users/${user.uid}/cameras/${cameraId}`;
+      getItem(`${key}/connections`)
         .then(snapshot => {
           snapshot.forEach(doc => {
             removeItems(`${doc.ref.path}/offeringCandidates`);
@@ -22,11 +23,11 @@ export function useLocalDevice(
           });
         });
 
-      getDoc(doc(db, `users/${user.uid}/cameras/${cameraId}`))
+      getDoc(doc(db, key))
         .then(doc => {
           const updatedDoc = doc.data()!;
           updatedDoc.sessionId = Date.now();
-          updateItem(`users/${user.uid}/cameras/${cameraId}`, updatedDoc);
+          updateItem(key, updatedDoc);
           dispatch(ConnectionActionCreator.setLocalDevice(doc as DeviceState));
         });
     }

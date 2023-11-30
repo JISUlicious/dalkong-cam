@@ -1,9 +1,9 @@
 import { User } from "firebase/auth";
 import { useEffect } from "react";
 import { Action, ConnectionActionCreator, Connections, DeviceState } from "../../common/contexts/ConnectionContext";
-import { Firestore, collection, doc, onSnapshot, query } from "firebase/firestore";
+import { Firestore, collection, onSnapshot, query } from "firebase/firestore";
 
-export function useCameraDocSubscription(
+export function useViewersCollectionSubscription(
   user: User | null, 
   localDevice: DeviceState | null, 
   localStream: MediaStream | null, 
@@ -18,7 +18,6 @@ export function useCameraDocSubscription(
         const viewersQuery = query(
           collection(db, key, "connections")
         );
-
         const unsubscribeViewersCollection = onSnapshot(viewersQuery, async (snapshot) => {
           snapshot.docChanges().forEach(async (change) => {
             if (change.type === "added") {

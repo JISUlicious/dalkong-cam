@@ -35,7 +35,6 @@ export const setLocalDevice = (api: MiddlewareAPI<ConnectionState>) =>
     const localDevice = state.localDevice;
     const localDeviceType = localDevice?.data()?.deviceType;
     const remoteDevices = state.remoteDevices;
-    console.log("localdevice type",localDeviceType)
     
     if (localDeviceType === "viewer") {
       Object.keys(remoteDevices).map(id => {

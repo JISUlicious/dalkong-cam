@@ -100,7 +100,6 @@ export function Viewer() {
       const camerasQuery = query(collection(db, key));
       const unsubscribeCamerasCollection = onSnapshot(camerasQuery, async snapshot => {
         snapshot.docChanges().map(async (change) => {
-          console.log(change.type)
           if (change.type === "added") {
             dispatch(ConnectionActionCreator.addRemoteDevice(change.doc as DeviceState));
           } else if (change.type === "removed") {
@@ -119,8 +118,6 @@ export function Viewer() {
       return (() => unsubscribeCamerasCollection());
     }
   }, [user, localDevice, !!localStream]);
-
-  console.log(remoteDevices)
 
   return (<div className="viewer body-content container-fluid w-100 pt-3 p-1 mx-0">
     <h6 className="text-center">

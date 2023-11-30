@@ -11,7 +11,7 @@ export function useRecording (
   const [isRecording, setIsRecording] = useState<boolean>(false);
 
   const recordingId = useRef<number>(0);
-
+  const recordingStartTime = useRef<number | null>(null);
   const lastMotionDetectedTime = useRef<number>(0);
   
   const canvas1 = document.createElement("canvas");
@@ -25,6 +25,7 @@ export function useRecording (
     console.log("recording stop");
     recorder.stop();
     setIsRecording(false);
+    recordingStartTime.current = null;
     return stopped;
   }
   
@@ -69,13 +70,20 @@ export function useRecording (
         
         const date = Date.now(); 
         const timeSinceLastMotion = date - lastMotionDetectedTime.current;
+        let timeSinceRecording = 0;
+        if (recordingStartTime.current) timeSinceRecording = date - recordingStartTime.current;
 
         if (timeSinceLastMotion < recordingBufferTime && recorder?.state === "inactive") {
           recorder.start();
           console.log("recording start");
           setIsRecording(true);
+          recordingStartTime.current = date;
           recordingId.current = lastMotionDetectedTime.current;
-        } else if (timeSinceLastMotion > recordingBufferTime && recorder?.state === "recording") {
+        } else if (
+          (
+            timeSinceLastMotion > recordingBufferTime 
+            || timeSinceRecording > 30000
+          ) && recorder?.state === "recording") {
           stopRecording(recorder)
             .then(() => {
               onRecorderStop(recordedData.current, recordingId.current);

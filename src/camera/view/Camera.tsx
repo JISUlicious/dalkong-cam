@@ -19,9 +19,11 @@ import { StreamWithControls } from "../../common/components/StreamWithControls";
 import { useRecording } from "../../common/hooks/useRecording";
 import { UploadResult, getDownloadURL, ref } from "firebase/storage";
 import { createFFmpeg } from "@ffmpeg/ffmpeg";
-import { useCameraDocSubscription } from "../hook/useCameraDocSubscription";
+import { useViewersCollectionSubscription } from "../hook/useViewersCollectionSubscription";
 import { useLocalStream } from "../hook/useLocalStream";
 import { useLocalDevice } from "../hook/useLocalDevice";
+import { useUpdateCameraDoc } from "../hook/useUpdateCameraDoc";
+import { useOnRecorderStop } from "../hook/useOnRecorderStop";
 
 
 export function Camera() {
@@ -31,58 +33,27 @@ export function Camera() {
 
   const [isConnectionClosed, setIsConnectionClosed] = useState(false);
 
+  const { cameraId } = useParams();
+  
+  const videoRef = useRef<HTMLVideoElement>(null);
+  
   const ffmpegLoad = useMemo(async () => {
     const ffmpeg = createFFmpeg();
     return ffmpeg.load().then(() => ffmpeg);
   }, []);
-
-  const { cameraId } = useParams();
-
-  const videoRef = useRef<HTMLVideoElement>(null);
-
+  
   const recorder = useMemo(() => {
     if (localStream) {
       return new MediaRecorder(localStream);
     }
   }, [localStream]);
-
-  const onRecorderStop = useCallback(async (blob: Blob[], recordingId: number) => {
-    if (user && localDevice) {
-      const key = `savedVideos/${user.uid}/${localDevice.id}/${recordingId}.mp4`;
-      const recordedBlob = new Blob(blob, { type: "video/webm" });
-      const sourceBuffer = await recordedBlob.arrayBuffer();
-      const ffmpeg = await ffmpegLoad;
-      ffmpeg.FS(
-        "writeFile",
-        `${recordingId}.webm`,
-        new Uint8Array(sourceBuffer, 0, sourceBuffer.byteLength)
-      );
-
-      await ffmpeg.run('-i', `${recordingId}.webm`, `${recordingId}.mp4`);
-      const output = ffmpeg.FS("readFile", `${recordingId}.mp4`);
-
-      return storeFile(key, output, 'video/mp4')
-        .then(result => getDownloadURL(ref(storage, result.ref.fullPath))
-          .then(url => [url, result] as [string, UploadResult]))
-        .then(([url, result]) => {
-          const key = `users/${user.uid}/savedVideos`;
-          const data = {
-            fullPath: result.ref.fullPath,
-            deviceName: localDevice.data()?.deviceName,
-            timestamp: recordingId,
-            deviceId: localDevice.id,
-            url: url
-          };
-          return addItem(key, data);
-        });
-    } else {
-      return Promise.reject();
-    }
-  }, [user, localDevice]);
+  
+  const onRecorderStop = useOnRecorderStop(user, localDevice, ffmpegLoad, storage);
 
   const isRecording = useRecording(videoRef, recorder, onRecorderStop);
 
   useEffect(() => {
+    // when camera removed from viewer
     if (user && localDevice) {
       const key = `users/${user.uid}/cameras/${localDevice.id}`;
       const unsubscribeCameraDoc = onSnapshot(doc(db, key), async (snapshot) => {
@@ -93,20 +64,7 @@ export function Camera() {
       })
       return (() => unsubscribeCameraDoc());
     }
-  })
-
-  useEffect(() => {
-    if (user && localDevice) {
-      getDoc(doc(db, `users/${user.uid}/cameras/${localDevice.id}`))
-        .then(doc => {
-          const updatedDoc = doc.data()!;
-          updatedDoc.isRecording = isRecording;
-          return updateItem(`users/${user.uid}/cameras/${localDevice.id}`, updatedDoc);
-        })
-        .then(() => getDoc(doc(db, `users/${user.uid}/cameras/${cameraId}`)))
-        .then(doc => dispatch(ConnectionActionCreator.setLocalDevice(doc as DeviceState)));
-    }
-  }, [user, !!localDevice, isRecording]);
+  });
 
   useEffect(() => {
     if (localStream) {
@@ -118,15 +76,16 @@ export function Camera() {
 
   useLocalStream(localStream, dispatch);
   useLocalDevice(user, localDevice, cameraId, db, dispatch);
-  useCameraDocSubscription(user, localDevice, localStream, connections, db, dispatch);
+  useUpdateCameraDoc(user, localDevice, db, isRecording, dispatch);
+  useViewersCollectionSubscription(user, localDevice, localStream, connections, db, dispatch);
 
   return (isConnectionClosed
-    ? <div className="camera body-content container-fluid w-100 px-0">
+    ? (<div className="camera body-content container-fluid w-100 px-0">
       <div className="container-fluid px-0 position-relative">
         <div className="row p-5 text-center">
           <div className="fs-5">Connection Closed</div>
         </div>
-        <div  className="row p-3 text-center">
+        <div className="row p-3 text-center">
           <Link to={'/'}>
             <div className="btn btn-primary px-2 py-1 w-50">
               {'back to Main'}
@@ -134,8 +93,7 @@ export function Camera() {
           </Link>
         </div>
       </div>
-
-    </div>
+    </div>)
     : (<div className="camera body-content container-fluid w-100 px-0">
       <div className="stream container-fluid px-0 position-relative">
         <StreamWithControls ref={videoRef} device={localDevice} muted={true} />
@@ -152,5 +110,6 @@ export function Camera() {
           </div>
         </div>
       </div>
-    </div>));
+    </div>)
+  );
 }
