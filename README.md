@@ -18,3 +18,22 @@
   - viewer: list of cameras, recording history, toggle voice
   - camera: movement detection recording, list of viewers
 
+## Installation
+
+### Clone repository
+```
+git clone git@github.com:JISUlicious/dalkong-cam.git
+```
+### Setup STUN, TURN server
+Create .env file and setup STUN and TURN servers.
+```
+# .env
+REACT_APP_TURN_SERVER={"iceServers":[{"urls": "stun:stun.server.url:port"},{"urls": "turn:turn.server.url:port","username": "username","credential": "credential"}]}
+```
+### Run in local
+```
+npm ci
+npm run start
+```
+
+
