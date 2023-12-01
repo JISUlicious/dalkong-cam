@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { useAuthContext } from "../contexts/AuthContext";
 import { signOutApp } from "../functions/auth";
+import { SideBarItem } from "./SideBarItem";
 
 export function Sidebar () {
   const {user} = useAuthContext();
@@ -38,46 +39,21 @@ export function Sidebar () {
     aria-labelledby="offcanvasNavbarLabel"
   >
     <div className="offcanvas-header justify-content-end">
-      {/* <h5 className="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5> */}
       <button type="button" className="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div className="offcanvas-body">
       <ul className="navbar-nav justify-content-end flex-grow-1 pe-3 pb-3">
-        <li className="nav-item">
-          <Link to="/">
-            <button className="btn btn-link text-start" type="button">
-              Home
-            </button>
-          </Link>
-        </li>
+        <SideBarItem route="/" text="Home"/>
         {user 
-          ? <li className="nav-item">
-            <Link to="/camera">
-              <button className="btn btn-link text-start" type="button">
-                Camera
-              </button>
-            </Link>
-          </li> 
+          ? <SideBarItem route="/camera" text="Camera" />
           : null
         }
         {user 
-          ? <li className="nav-item">
-            <Link to={"/viewer"}>
-              <button className="btn btn-link text-start" type="button">
-                Viewer
-              </button>
-            </Link>
-          </li> 
+          ? <SideBarItem route="/viewer" text="Viewer" />
           : null
         }
         {user 
-          ? <li className="nav-item">
-            <Link to={"/history"}>
-              <button className="btn btn-link text-start" type="button">
-                History
-              </button>
-            </Link>
-          </li>
+          ? <SideBarItem route="/history" text="History" />
           : null
         }
       </ul>
@@ -92,12 +68,10 @@ export function Sidebar () {
         <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Turn on dark mode</label>
       </div>
     </div>
-
     <div className="offcanvas-footer">
-      
       <div className="d-grid gap-2">
       {user 
-        ? <button type="button" className="btn btn-outline-secondary float-end" onClick={onSignOut}>
+        ? <button type="button" className="btn btn-outline-secondary float-end" data-bs-dismiss="offcanvas" onClick={onSignOut}>
           Sign Out
         </button>
         : null

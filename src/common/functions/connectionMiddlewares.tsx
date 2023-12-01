@@ -44,7 +44,7 @@ export const setLocalDevice = (api: MiddlewareAPI<ConnectionState>) =>
         removeItem(connectionKey);
       });
       removeItem(localDevice!.ref.path);
-    } else {
+    } else if (localDeviceType == "camera") {
       Object.keys(remoteDevices).map(id => {
         const connectionKey = `${remoteDevices[id].ref.path}`;
         removeItems(connectionKey + "/offeringCandidates");
@@ -52,6 +52,8 @@ export const setLocalDevice = (api: MiddlewareAPI<ConnectionState>) =>
         removeItem(connectionKey);
       });
       removeItem(localDevice!.ref.path);
+    } else {
+      console.log("localDeviceType", localDeviceType);
     }
 
     Object.keys(remoteDevices).map(id => {

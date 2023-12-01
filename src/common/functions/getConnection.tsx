@@ -4,7 +4,7 @@ import { Action, ConnectionActionCreator, DeviceState } from "../contexts/Connec
 
 import { addItem, updateItem } from "./storage";
 
-import openRelayTurnServer from "../../turnSettings";
+const openRelayTurnServer: RTCConfiguration = JSON.parse(process.env.REACT_APP_TURN_SERVER!);
 
 export function getConnection (
   localDevice: DeviceState,
@@ -14,9 +14,8 @@ export function getConnection (
   dispatch: Dispatch<Action>,
   localStream: MediaStream | null
 ): RTCPeerConnection {
-
   const connection = new RTCPeerConnection(openRelayTurnServer);
-    
+
   connection.onicecandidate = (event) => {
     if (!event.candidate) {
       return;

@@ -26,7 +26,7 @@ type RemoteStreams = Record<string, MediaStream>
 
 type RemoteDevices = Record<string, DeviceState>
 
-type Connections = Record<string, RTCPeerConnection>
+export type Connections = Record<string, RTCPeerConnection>
 
 type Subscriptions = Record<string, Unsubscribe[]>
 
