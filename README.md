@@ -32,7 +32,7 @@ REACT_APP_TURN_SERVER={"iceServers":[{"urls": "stun:stun.server.url:port"},{"url
 ```
 ### Run in local
 ```
-npm ci
+npm install
 npm run start
 ```
 
