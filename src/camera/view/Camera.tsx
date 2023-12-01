@@ -1,24 +1,19 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { doc, getDoc, onSnapshot } from "firebase/firestore";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { doc, onSnapshot } from "firebase/firestore";
+import { createFFmpeg } from "@ffmpeg/ffmpeg";
+import { useParams } from "react-router-dom";
 
-import { AudioItem } from "../components/AudioItem";
-
+import { db, storage } from "../../common/functions/firebaseInit";
 import { useAuthContext } from "../../common/contexts/AuthContext";
 import {
   ConnectionActionCreator,
-  DeviceState,
   useConnectionContext,
   useConnectionDispatchContext
 } from "../../common/contexts/ConnectionContext";
-
-import { db, storage } from "../../common/functions/firebaseInit";
-import { Link, useParams } from "react-router-dom";
-import { addItem, storeFile, updateItem } from "../../common/functions/storage";
+import { AudioItem } from "../components/AudioItem";
 import { StreamWithControls } from "../../common/components/StreamWithControls";
-
+import { ConnectionClosed } from "../components/ConnectionClosed";
 import { useRecording } from "../../common/hooks/useRecording";
-import { UploadResult, getDownloadURL, ref } from "firebase/storage";
-import { createFFmpeg } from "@ffmpeg/ffmpeg";
 import { useViewersCollectionSubscription } from "../hook/useViewersCollectionSubscription";
 import { useLocalStream } from "../hook/useLocalStream";
 import { useLocalDevice } from "../hook/useLocalDevice";
@@ -47,7 +42,7 @@ export function Camera() {
       return new MediaRecorder(localStream);
     }
   }, [localStream]);
-  
+
   const onRecorderStop = useOnRecorderStop(user, localDevice, ffmpegLoad, storage);
 
   const isRecording = useRecording(videoRef, recorder, onRecorderStop);
@@ -80,20 +75,7 @@ export function Camera() {
   useViewersCollectionSubscription(user, localDevice, localStream, connections, db, dispatch);
 
   return (isConnectionClosed
-    ? (<div className="camera body-content container-fluid w-100 px-0">
-      <div className="container-fluid px-0 position-relative">
-        <div className="row p-5 text-center">
-          <div className="fs-5">Connection Closed</div>
-        </div>
-        <div className="row p-3 text-center">
-          <Link to={'/'}>
-            <div className="btn btn-primary px-2 py-1 w-50">
-              {'back to Main'}
-            </div>
-          </Link>
-        </div>
-      </div>
-    </div>)
+    ? <ConnectionClosed />
     : (<div className="camera body-content container-fluid w-100 px-0">
       <div className="stream container-fluid px-0 position-relative">
         <StreamWithControls ref={videoRef} device={localDevice} muted={true} />
