@@ -39,7 +39,7 @@ export function Camera() {
   
   const recorder = useMemo(() => {
     if (localStream) {
-      return new MediaRecorder(localStream);
+      return new MediaRecorder(localStream, { mimeType: 'video/webm;codecs=vp8,opus' });
     }
   }, [localStream]);
 
