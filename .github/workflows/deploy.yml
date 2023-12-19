@@ -1,7 +1,7 @@
 name: GitHub Actions Deploy Dalkong Cam
 run-name: ${{ github.actor }} is deploying Dalkong Cam 🚀
 on: 
-  merge:
+  push:
     branchs:
       - main
 
