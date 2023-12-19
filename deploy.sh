@@ -2,7 +2,7 @@ echo "start deploy"
 
 npm run build
 
-aws cloudfront create-invalidation --distribution-id E13Z16GQRD7R2Z --paths "/*" --no-pagenate
+aws cloudfront create-invalidation --distribution-id E13Z16GQRD7R2Z --paths "/*" --no-paginate
 
 aws s3 sync --exclude "*.map" --delete ./build s3://dalkong-cam
 
