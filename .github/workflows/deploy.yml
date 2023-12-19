@@ -25,6 +25,7 @@ jobs:
           restore-keys: |
             ${{ runner.OS }}-build-
             ${{ runner.OS }}-
+      - run: node -v
       - name: Install dependencies
         run: npm install
       - name: Build project
