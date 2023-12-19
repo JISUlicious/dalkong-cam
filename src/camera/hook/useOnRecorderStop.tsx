@@ -23,7 +23,7 @@ export function useOnRecorderStop(
         new Uint8Array(sourceBuffer, 0, sourceBuffer.byteLength)
       );
 
-      await ffmpeg.run('-i', `${recordingId}.webm`, `${recordingId}.mp4`);
+      await ffmpeg.run('-i', `${recordingId}.webm`, '-c:v', 'copy', `${recordingId}.mp4`);
       const output = ffmpeg.FS("readFile", `${recordingId}.mp4`);
 
       return storeFile(key, output, 'video/mp4')

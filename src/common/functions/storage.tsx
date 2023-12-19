@@ -51,11 +51,12 @@ export function removeField(key: string, field: string) {
 }
 
 // TODO: export function storeFile
-export function storeFile(key: string, file: Uint8Array, contentType: string | null = null) {
+export function storeFile(key: string, file: Uint8Array | Blob, contentType: string | undefined) {
+  const contentTypeOption: UploadMetadata = {contentType}
   return uploadBytes(
     ref(storage, key), 
     file, 
-    contentType ? {contentType: contentType} as UploadMetadata : undefined
+    contentTypeOption
     );
 }
 
