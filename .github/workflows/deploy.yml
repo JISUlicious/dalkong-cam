@@ -17,6 +17,11 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
       - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - name: Setup Node env
+        run: |
+          echo "REACT_APP_TURN_SERVER=$REACT_APP_TURN_SERVER" >> .env.production
+        env:
+          REACT_APP_TURN_SERVER: ${{ secrets.REACT_APP_TURN_SERVER }}  
       # - name: Cache node modules
       #   uses: actions/cache@v3
       #   with:
