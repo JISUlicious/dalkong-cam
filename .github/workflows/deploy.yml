@@ -9,9 +9,10 @@ jobs:
   Deploy-On-Merge:
     runs-on: self-hosted
     steps:
-      - run: echo "Start deploying Dalkong Cam to S3."
-      - run: echo "Running on a ${{ runner.os }} server named ${{ runner.name }}!"
-      - run: echo "Branch ${{ github.ref }} from repository ${{ github.repository }}."
+      - name: Run deploy
+        run: echo "Start deploying Dalkong Cam to S3."
+        run: echo "Running on a ${{ runner.os }} server named ${{ runner.name }}!"
+        run: echo "Branch ${{ github.ref }} from repository ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v4
       - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
@@ -36,9 +37,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }} # 등록한 Github Secret.
           aws-region: ap-northeast-2
       - name: Invalidate
-        run: aws cloudfront create-invalidation --distribution-id ${{ secrets.AWS_S3_DALKONG_CAM_DIST_ID}} --paths "/*" --no-pagenate
-      - run: echo "Invalidation created"
+        run: aws cloudfront create-invalidation --distribution-id ${{ secrets.AWS_S3_DALKONG_CAM_DIST_ID}} --paths "/*" --no-paginate
+        run: echo "Invalidation created"
       - name: Sync files
         run: aws s3 sync --exclude "*.map" --delete ./build s3://dalkong-cam
-      - run: echo "Files synced with 's3://dalkong-cam'"
-      - run: echo "Completed ${{ job.status }}."
+        run: echo "Files synced with 's3://dalkong-cam'"
+      - name: Deploy finished
+        run: echo "Completed ${{ job.status }}."
