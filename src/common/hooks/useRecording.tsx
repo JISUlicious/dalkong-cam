@@ -43,7 +43,7 @@ export function useRecording (
       const captureInterval = 100;
       const width = 64;
       const height = 48;
-      const recordingBufferTime = 1000;
+      const recordingBufferTime = 5000;
       canvas1.width = width;
       canvas1.height = height;
       canvas2.width = width;
