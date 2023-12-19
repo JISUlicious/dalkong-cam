@@ -1,5 +1,6 @@
 # dalkong-cam
 
+## Live Demo
 [Dalkong-Cam](https://dv4m5ajprpkkf.cloudfront.net/)
 
 ## WebRTC based home security application
@@ -8,7 +9,7 @@
 
 ## Tech
 
-- Typescript, React.JS, Bootstrap
+- Typescript, React, Bootstrap
 - Firebase, WebRTC, AWS S3
 
 ## Functionalities

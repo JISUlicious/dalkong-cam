@@ -5,8 +5,9 @@ export async function getMedia(deviceId: string | null = null) {
     audio: true,
     video: {
       ...videoConstraint,
-      height: { min: 1080, max: 1920 },
-      width: { min: 1080, max: 1920 },
+      height: { min: 720, max: 1080 },
+      // width: { min: 1080, max: 1920 },
+      // aspect ratio
       frameRate: { min: 15, ideal: 24, max: 30 },
     },
   };

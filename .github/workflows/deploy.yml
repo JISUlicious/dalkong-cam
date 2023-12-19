@@ -1,0 +1,42 @@
+name: GitHub Actions Deploy Dalkong Cam
+run-name: ${{ github.actor }} is deploying Dalkong Cam 🚀
+on: 
+  merge:
+    branchs:
+      - main
+
+jobs:
+  Deploy-On-Merge:
+    runs-on: self-hosted
+    steps:
+      - run: echo "Start deploying Dalkong Cam to S3."
+      - run: echo "Running on a ${{ runner.os }} server named ${{ runner.name }}!"
+      - run: echo "Branch ${{ github.ref }} from repository ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - name: Cache node modules      # node modules 캐싱
+        uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: ${{ runner.OS }}-build-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.OS }}-build-
+            ${{ runner.OS }}-
+      - name: Install dependencies
+      - run: npm install
+      - name: Build project
+      - run: npm run build
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }} # 등록한 Github Secret.
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }} # 등록한 Github Secret.
+          aws-region: ap-northeast-2
+      - name: Invalidate
+        run: aws cloudfront create-invalidation --distribution-id ${{ secrets.AWS_S3_DALKONG_CAM_DIST_ID}} --paths "/*" --no-pagenate
+      - run: echo "Invalidation created"
+      - name: Sync files
+        run: aws s3 sync --exclude "*.map" --delete ./build s3://dalkong-cam
+      - run: echo "Files synced with 's3://dalkong-cam'"
+      - run: echo "Completed ${{ job.status }}."
