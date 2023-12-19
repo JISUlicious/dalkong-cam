@@ -24,9 +24,9 @@ jobs:
             ${{ runner.OS }}-build-
             ${{ runner.OS }}-
       - name: Install dependencies
-      - run: npm install
+        run: npm install
       - name: Build project
-      - run: npm run build
+        run: npm run build
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
