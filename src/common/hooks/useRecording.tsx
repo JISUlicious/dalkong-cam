@@ -73,6 +73,7 @@ export function useRecording (
         let timeSinceRecording = 0;
         if (recordingStartTime.current) timeSinceRecording = date - recordingStartTime.current;
 
+        console.log(recorder?.state);
         if (timeSinceLastMotion < recordingBufferTime && recorder?.state === "inactive") {
           recorder.start();
           console.log("recording start", recorder.state);
