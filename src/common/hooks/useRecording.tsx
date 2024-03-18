@@ -75,7 +75,7 @@ export function useRecording (
 
         if (timeSinceLastMotion < recordingBufferTime && recorder?.state === "inactive") {
           recorder.start();
-          console.log("recording start");
+          console.log("recording start", recorder.state);
           setIsRecording(true);
           recordingStartTime.current = date;
           recordingId.current = lastMotionDetectedTime.current;
@@ -84,6 +84,7 @@ export function useRecording (
             timeSinceLastMotion > recordingBufferTime 
             || timeSinceRecording > 30000
           ) && recorder?.state === "recording") {
+          console.log(recorder.state, timeSinceLastMotion, timeSinceRecording);
           stopRecording(recorder)
             .then(() => {
               onRecorderStop(recordedData.current, recordingId.current);
