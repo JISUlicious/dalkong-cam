@@ -9,7 +9,6 @@ export function useRecording (
   ): boolean {
   const recordedData = useRef<Blob[]>([]);
   const [isRecording, setIsRecording] = useState<boolean>(false);
-  console.log()
 
   const recordingId = useRef<number>(0);
   const recordingStartTime = useRef<number | null>(null);
@@ -74,10 +73,9 @@ export function useRecording (
         let timeSinceRecording = 0;
         if (recordingStartTime.current) timeSinceRecording = date - recordingStartTime.current;
 
-        console.log(recorder, recorder?.state);
-        if (timeSinceLastMotion < recordingBufferTime && (recorder?.state === "inactive" && !isRecording)) {
+        if (timeSinceLastMotion < recordingBufferTime && recorder?.state === "inactive") {
           recorder.start();
-          console.log("recording start", recorder.state);
+          console.log("recording start");
           setIsRecording(true);
           recordingStartTime.current = date;
           recordingId.current = lastMotionDetectedTime.current;
@@ -85,9 +83,8 @@ export function useRecording (
           (
             timeSinceLastMotion > recordingBufferTime 
             || timeSinceRecording > 30000
-          ) && (recorder?.state === "recording" || isRecording)) {
-          console.log(recorder?.state, timeSinceLastMotion, timeSinceRecording);
-          stopRecording(recorder!)
+          ) && recorder?.state === "recording") {
+          stopRecording(recorder)
             .then(() => {
               onRecorderStop(recordedData.current, recordingId.current);
               recordedData.current = [];
