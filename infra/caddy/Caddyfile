@@ -1,0 +1,28 @@
+{
+  email admin@your.domain
+}
+
+your.domain {
+  encode zstd gzip
+
+  @api path /auth/* /api/* /devices* /videos* /signaling /health
+  handle @api {
+    reverse_proxy api:3001
+  }
+
+  handle /media/* {
+    uri strip_prefix /media
+    reverse_proxy minio:9000
+  }
+
+  handle {
+    respond "dalkong-cam api" 200
+  }
+
+  header {
+    Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+    X-Content-Type-Options "nosniff"
+    Referrer-Policy "strict-origin-when-cross-origin"
+    X-Frame-Options "DENY"
+  }
+}

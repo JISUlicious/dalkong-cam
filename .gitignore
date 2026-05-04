@@ -27,3 +27,13 @@ yarn-error.log*
 src/turnSettings.tsx
 
 .env
+
+# monorepo additions
+apps/*/node_modules
+apps/*/dist
+packages/*/node_modules
+packages/*/dist
+apps/*/.env
+apps/mobile/.expo
+apps/mobile/ios
+apps/mobile/android

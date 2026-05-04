@@ -1,8 +1,23 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // The web app is being migrated off Firebase; new clients must use the
+    // self-hosted backend (see /apps/api). Until cutover, the legacy web app
+    // is restricted to the owning user's own subtree, with email verified.
+    match /users/{userId} {
+      allow read, write: if request.auth != null
+        && request.auth.uid == userId
+        && request.auth.token.email_verified == true;
+
+      match /{document=**} {
+        allow read, write: if request.auth != null
+          && request.auth.uid == userId
+          && request.auth.token.email_verified == true;
+      }
+    }
+
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }
