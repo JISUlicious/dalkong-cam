@@ -13,19 +13,39 @@ Tracking the eight phases from the plan in `/root/.claude/plans/this-repo-has-a-
 | 7 | Security hardening + tests + threat model | ✅ Done — see [SECURITY.md](SECURITY.md), 10 unit tests pass; live cross-tenant script in SECURITY.md |
 | 8 | Cutover: retire Firebase, remove legacy code | 🟡 Documented in [CUTOVER.md](CUTOVER.md) — not executed (preserves rollback) |
 
+## On-device motion detection (landed)
+
+`src/camera/motionFrameProcessor.ts` runs on the Vision Camera worklet
+runtime at 4 fps. Two strategies, picked at runtime:
+
+1. **ML Kit object detector** (preferred) via
+   [`react-native-vision-camera-mlkit`](https://github.com/pedrol2b/react-native-vision-camera-mlkit).
+   Tracks objects across frames; fires when a tracked bounding box centre
+   moves more than ~12 px between samples. Lowest false-positive rate.
+2. **Pixel-delta worklet** (fallback) — mirrors the legacy web algorithm:
+   downsample to 64×48, count pixels with RGB-delta ≥ 3, fire on > 50.
+   Used when ML Kit isn't available (e.g. an Android build without GMS).
+
+Result is wired into `useMotionDetection.reportMotion()` via
+`Worklets.createRunOnJS(...)`, which keeps the camera thread isolated from
+React state.
+
+## Background recording on Android (landed)
+
+`src/camera/foregroundService.ts` uses `@notifee/react-native` to start a
+foreground service with `foregroundServiceTypes: ["camera", "microphone"]`,
+plus an ongoing low-priority notification, when the camera screen mounts.
+Required permissions (`FOREGROUND_SERVICE_CAMERA`,
+`FOREGROUND_SERVICE_MICROPHONE`) are already declared in `app.config.ts`.
+
+iOS keeps the WS + audio talkback alive in background through the
+`UIBackgroundModes: ["audio","voip"]` declaration; continuous **video**
+capture in background still requires CallKit / VoIP UX, which is a
+deliberate tradeoff to defer.
+
 ## Known follow-ups
 
-1. **Native motion-detection frame processor.** The current
-   `useMotionDetection` hook owns the recording-window state machine but is
-   triggered manually (debug button) or by a future Vision Camera frame
-   processor. Two options:
-   - Pure-JS worklet at 2–5 fps using `frame.toArrayBuffer()` (fastest to ship,
-     ~10 % CPU on midrange Android). Mirrors the legacy web algorithm:
-     downsample to 64×48, count pixels with RGB-delta ≥ 3, fire on > 50.
-   - Native Vision Camera frame processor plugin (Swift `CMSampleBuffer` +
-     Kotlin `ImageProxy`) for ~1 % CPU. Highest quality, more setup.
-
-2. **APNs direct sender.** FCM with the `apns:` config field handles iOS as
+1. **APNs direct sender.** FCM with the `apns:` config field handles iOS as
    long as your Apple developer credentials are configured in the Firebase
    console. If you want to skip Firebase entirely on iOS, swap the `sendFcmV1`
    call for an `apns2` HTTP/2 sender using a `.p8` key (ES256 JWT).

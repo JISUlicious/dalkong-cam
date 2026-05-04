@@ -12,6 +12,11 @@ import { mediaDevices, type MediaStream } from "react-native-webrtc";
 import { useRouter } from "expo-router";
 
 import { useMotionDetection } from "@/camera/useMotionDetection";
+import { useMotionFrameProcessor } from "@/camera/motionFrameProcessor";
+import {
+  startCameraForegroundService,
+  stopCameraForegroundService,
+} from "@/camera/foregroundService";
 import { uploadRecording } from "@/camera/uploadRecording";
 import {
   ensureLocalDevice,
@@ -30,6 +35,7 @@ function CameraInner({ device: localDevice }: { device: LocalDevice }) {
   const physicalDevice = useCameraDevice("back");
   const cameraRef = useRef<Camera>(null);
   const motion = useMotionDetection();
+  const frameProcessor = useMotionFrameProcessor(motion.reportMotion);
   const { start, sendRecordingState, peers } = useConnection();
   const [streamReady, setStreamReady] = useState(false);
   const [recording, setRecording] = useState(false);
@@ -40,6 +46,13 @@ function CameraInner({ device: localDevice }: { device: LocalDevice }) {
     if (!camOk) void reqCam();
     if (!micOk) void reqMic();
   }, [camOk, micOk, reqCam, reqMic]);
+
+  useEffect(() => {
+    void startCameraForegroundService({ deviceName: localDevice.name });
+    return () => {
+      void stopCameraForegroundService();
+    };
+  }, [localDevice.name]);
 
   useEffect(() => {
     let cancelled = false;
@@ -143,6 +156,7 @@ function CameraInner({ device: localDevice }: { device: LocalDevice }) {
         isActive={true}
         audio
         video
+        frameProcessor={frameProcessor}
       />
       <SafeAreaView pointerEvents="box-none" className="absolute inset-0 p-4">
         <View className="flex-row items-center justify-between">

@@ -14,8 +14,10 @@
   "dependencies": {
     "@config-plugins/react-native-webrtc": "^11.0.0",
     "@dalkong/shared": "file:../../packages/shared",
+    "@notifee/react-native": "^9.1.8",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@shopify/flash-list": "1.7.0",
+    "react-native-vision-camera-mlkit": "^0.7.0",
     "expo": "~55.0.0",
     "expo-dev-client": "~6.0.0",
     "expo-image": "~3.0.0",

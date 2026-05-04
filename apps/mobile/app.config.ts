@@ -49,6 +49,10 @@ const config: ExpoConfig = {
         enableCodeScanner: false,
       },
     ],
+    [
+      "react-native-vision-camera-mlkit",
+      { mlkit: { objectDetection: true } },
+    ],
     "@config-plugins/react-native-webrtc",
     [
       "expo-build-properties",
