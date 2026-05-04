@@ -4,7 +4,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: dalkong
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dalkong}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?missing}
       POSTGRES_DB: dalkong
     volumes:
       - pg_data:/var/lib/postgresql/data
@@ -19,8 +19,8 @@ services:
     restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-dalkong}
-      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-dalkong-secret-change-me}
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:?missing}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:?missing}
     volumes:
       - minio_data:/data
     healthcheck:
@@ -35,7 +35,13 @@ services:
     network_mode: host
     volumes:
       - ./coturn/turnserver.conf:/etc/coturn/turnserver.conf:ro
-    command: ["-c", "/etc/coturn/turnserver.conf"]
+      - caddy_data:/caddy-data:ro
+    command:
+      - "-c"
+      - "/etc/coturn/turnserver.conf"
+      - "--realm=${DOMAIN:?missing}"
+      - "--server-name=${DOMAIN:?missing}"
+      - "--static-auth-secret=${TURN_SHARED_SECRET:?missing}"
 
   api:
     build:
@@ -58,6 +64,9 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?missing}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?missing}
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
