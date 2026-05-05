@@ -53,26 +53,32 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       }
 
       const passwordHash = await hashPassword(password);
+      const verificationRequired = config.EMAIL_VERIFICATION_REQUIRED;
       const [user] = await db
         .insert(schema.users)
         .values({
           email,
           passwordHash,
-          emailVerificationSentAt: new Date(),
+          emailVerified: !verificationRequired,
+          emailVerificationSentAt: verificationRequired ? new Date() : null,
         })
         .returning();
       if (!user) {
         return reply.code(500).send({ error: "signup_failed" });
       }
 
-      const verifyToken = issueEmailVerificationToken(user.id);
-      const verifyUrl = `${config.PUBLIC_BASE_URL}/auth/verify-email?token=${encodeURIComponent(verifyToken)}`;
-      try {
-        await sendEmailVerification({ to: user.email, verifyUrl });
-      } catch (err) {
-        req.log.error({ err }, "failed to send verification email");
+      if (verificationRequired) {
+        const verifyToken = issueEmailVerificationToken(user.id);
+        const verifyUrl = `${config.PUBLIC_BASE_URL}/auth/verify-email?token=${encodeURIComponent(verifyToken)}`;
+        try {
+          await sendEmailVerification({ to: user.email, verifyUrl });
+        } catch (err) {
+          req.log.error({ err }, "failed to send verification email");
+        }
       }
-      return reply.code(201).send({ ok: true });
+      return reply
+        .code(201)
+        .send({ ok: true, emailVerificationRequired: verificationRequired });
     },
   });
 

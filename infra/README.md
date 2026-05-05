@@ -63,6 +63,22 @@ A handful of values appear in both files (`POSTGRES_PASSWORD`, `MINIO_*`, `TURN_
 
    (Postgres is not exposed publicly by default — open 5432 to your IP only via SSH tunnel or a temporary firewall rule for the migration step.)
 
+## Email options
+
+Email verification is enabled by default (`EMAIL_VERIFICATION_REQUIRED=true`
+in `apps/api/.env`). You have three paths:
+
+1. **Skip it** — set `EMAIL_VERIFICATION_REQUIRED=false`, leave `SMTP_URL` and
+   `EMAIL_FROM` blank. Signup auto-verifies new users. Fine for self-only
+   deployments and initial standup.
+2. **Test locally with Mailpit** — keep verification on, set
+   `SMTP_URL=smtp://mailpit:1025` and `EMAIL_FROM=no-reply@<DOMAIN>`, then run
+   `docker compose --profile dev up -d`. Open `http://localhost:8025` in a
+   browser to read the verification emails and click the link.
+3. **Use a real SMTP provider** — Resend, Postmark, Mailgun, Brevo, Amazon SES,
+   Gmail with an app-password, etc. Most have free tiers sufficient for a
+   home cam deployment. Format: `smtp://USER:PASS@host:587`.
+
 ## Verification
 
 ```sh

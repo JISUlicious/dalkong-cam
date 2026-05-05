@@ -43,6 +43,19 @@ services:
       - "--server-name=${DOMAIN:?missing}"
       - "--static-auth-secret=${TURN_SHARED_SECRET:?missing}"
 
+  # Local SMTP catcher for testing the email-verification flow without a
+  # real SMTP provider. Web UI on http://localhost:8025. Opt in with:
+  #   docker compose --profile dev up -d
+  # Then point apps/api/.env SMTP_URL=smtp://mailpit:1025 (no auth).
+  mailpit:
+    image: axllent/mailpit:latest
+    profiles: ["dev"]
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+    expose:
+      - "1025"
+
   api:
     build:
       context: ..

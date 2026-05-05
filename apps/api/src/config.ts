@@ -19,8 +19,15 @@ const envSchema = z.object({
     .default(60 * 60 * 24 * 30),
 
   EMAIL_VERIFICATION_SECRET: z.string().min(32),
-  EMAIL_FROM: z.string().email(),
-  SMTP_URL: z.string().min(1),
+  // When false, signup auto-marks new users as verified and no email is
+  // sent. Useful for self-only deployments and during initial standup
+  // before SMTP is configured. Default: true (production posture).
+  EMAIL_VERIFICATION_REQUIRED: z
+    .string()
+    .transform((v) => v !== "false")
+    .default("true"),
+  EMAIL_FROM: z.string().email().optional(),
+  SMTP_URL: z.string().min(1).optional(),
 
   MINIO_ENDPOINT: z.string().min(1),
   MINIO_PORT: z.coerce.number().int().positive().default(9000),
@@ -56,6 +63,18 @@ const parsed = envSchema.safeParse(process.env);
 if (!parsed.success) {
   // eslint-disable-next-line no-console
   console.error("Invalid environment configuration:", parsed.error.format());
+  process.exit(1);
+}
+
+if (
+  parsed.data.EMAIL_VERIFICATION_REQUIRED &&
+  (!parsed.data.SMTP_URL || !parsed.data.EMAIL_FROM)
+) {
+  // eslint-disable-next-line no-console
+  console.error(
+    "EMAIL_VERIFICATION_REQUIRED=true but SMTP_URL and/or EMAIL_FROM is unset.\n" +
+      "Either provide both, or set EMAIL_VERIFICATION_REQUIRED=false.",
+  );
   process.exit(1);
 }
 
