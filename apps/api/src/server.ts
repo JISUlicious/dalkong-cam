@@ -58,10 +58,11 @@ export async function buildServer(): Promise<FastifyInstance> {
   app.setErrorHandler((err, req, reply) => {
     req.log.error({ err }, "request error");
     if (reply.sent) return;
-    if ((err as { statusCode?: number }).statusCode) {
-      reply.code((err as { statusCode: number }).statusCode).send({
-        error: err.name,
-        message: err.message,
+    const e = err as { statusCode?: number; name?: string; message?: string };
+    if (e.statusCode) {
+      reply.code(e.statusCode).send({
+        error: e.name ?? "error",
+        message: e.message ?? "",
       });
       return;
     }

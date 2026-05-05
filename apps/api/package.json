@@ -15,17 +15,16 @@
   },
   "dependencies": {
     "@dalkong/shared": "file:../../packages/shared",
-    "@fastify/cookie": "^9.4.0",
-    "@fastify/cors": "^9.0.1",
-    "@fastify/jwt": "^8.0.1",
-    "@fastify/rate-limit": "^9.1.0",
-    "@fastify/sensible": "^5.6.0",
-    "@fastify/websocket": "^10.0.1",
+    "@fastify/cookie": "^11.0.2",
+    "@fastify/cors": "^11.2.0",
+    "@fastify/rate-limit": "^10.3.0",
+    "@fastify/sensible": "^6.0.4",
+    "@fastify/websocket": "^11.2.0",
     "argon2": "^0.40.3",
-    "drizzle-orm": "^0.32.2",
-    "fastify": "^4.28.1",
+    "drizzle-orm": "^0.45.2",
+    "fastify": "^5.8.5",
     "minio": "^8.0.1",
-    "nodemailer": "^6.9.14",
+    "nodemailer": "^8.0.7",
     "pino-pretty": "^11.2.2",
     "postgres": "^3.4.4",
     "zod": "^3.23.8",
@@ -35,9 +34,9 @@
     "@types/node": "^22.4.1",
     "@types/nodemailer": "^6.4.15",
     "@types/zxcvbn": "^4.4.4",
-    "drizzle-kit": "^0.24.0",
+    "drizzle-kit": "^0.31.10",
     "tsx": "^4.17.0",
     "typescript": "^5.5.4",
-    "vitest": "^2.0.5"
+    "vitest": "^4.1.5"
   }
 }
