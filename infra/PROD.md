@@ -23,6 +23,36 @@ If any of those assumptions changes, see the alternatives at the bottom.
   cd dalkong-cam
   ```
 
+## Already running nginx?
+
+If the prod Mac already has nginx terminating TLS for other subdomains, **skip Caddy**
+and front dalkong-cam with the existing nginx instead:
+
+1. Use the `docker-compose.nginx.yml` overlay alongside the Mac one. Caddy
+   is disabled; api binds to `127.0.0.1:3001`, minio to `127.0.0.1:9000`.
+2. Drop [`infra/nginx/cam.example.conf`](nginx/cam.example.conf) into
+   `/etc/nginx/sites-available/`, replace the domain, and `ln -s` it to
+   `sites-enabled/`.
+3. Issue a cert for the subdomain: `sudo certbot --nginx -d cam.yourdomain.com`
+   (or extend an existing wildcard).
+4. `sudo nginx -t && sudo nginx -s reload`.
+5. coturn ports (3478/UDP+TCP, 49152-49262/UDP) still need to be forwarded
+   from the router to the Mac directly — nginx is not involved in TURN
+   traffic.
+
+The compose invocation becomes:
+
+```sh
+docker compose \
+  -f docker-compose.yml \
+  -f docker-compose.mac.yml \
+  -f docker-compose.nginx.yml \
+  up -d --build
+```
+
+The rest of this doc (DNS, env, secrets, migrations, smoke tests) applies
+unchanged. Skip the "Caddy logs / cert obtained" section.
+
 ## DNS and ports
 
 1. **A record**: `cam.yourdomain.com` (or whatever you set as `DOMAIN`) must resolve to your home's public IPv4.

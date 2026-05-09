@@ -22,12 +22,13 @@ Two env files drive the whole stack. Both are gitignored.
 
 A handful of values appear in both files (`POSTGRES_PASSWORD`, `MINIO_*`, `TURN_SHARED_SECRET`) because they're needed at the infra layer (Compose, coturn CLI) AND inside the API. Both `.env.example` files mark them with `[SYNCED]` — they MUST match exactly.
 
-## Two deployment shapes
+## Deployment shapes
 
 | Where | Doc | Compose files | Reachable at |
 |---|---|---|---|
-| dev Mac (your laptop) for inner-loop iteration | [`DEV.md`](DEV.md) | `docker-compose.yml` + `.mac.yml` + `.dev.yml` | `http://<dev-mac-lan-ip>:3001` (no TLS, no Caddy) |
-| prod Mac (always-on home server) | [`PROD.md`](PROD.md) | `docker-compose.yml` + `.mac.yml` | `https://<your-domain>` (Caddy + Let's Encrypt) |
+| dev Mac (your laptop) for inner-loop iteration | [`DEV.md`](DEV.md) | `.yml` + `.mac.yml` + `.dev.yml` | `http://<dev-mac-lan-ip>:3001` (no TLS, no proxy) |
+| prod Mac, greenfield (Caddy provides TLS) | [`PROD.md`](PROD.md) | `.yml` + `.mac.yml` | `https://<your-domain>` (Caddy + Let's Encrypt) |
+| prod Mac, existing nginx fronts traffic | [`PROD.md` "Already running nginx"](PROD.md#already-running-nginx) | `.yml` + `.mac.yml` + `.nginx.yml` | `https://<your-domain>` (your nginx + your cert) |
 
 Both Macs share the same code and compose files; only the `.env` values and
 which override files you pass differ. The `docker-compose.mac.yml` overlay is

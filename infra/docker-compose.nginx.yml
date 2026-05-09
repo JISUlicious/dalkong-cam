@@ -1,0 +1,31 @@
+# Override for hosts where an external reverse proxy (nginx, Traefik, etc.)
+# already terminates TLS and proxies the subdomain to the api / minio.
+#
+# Apply on top of the base + Mac files:
+#
+#   docker compose \
+#     -f docker-compose.yml \
+#     -f docker-compose.mac.yml \
+#     -f docker-compose.nginx.yml \
+#     up -d
+#
+# What this changes:
+# - Caddy is disabled (the external nginx terminates TLS).
+# - api and minio bind to 127.0.0.1 on the host so nginx can proxy to them
+#   without exposing those services to the LAN/internet directly. coturn
+#   still binds its own ports (3478/5349/49152-49262) — TURN traffic does
+#   not go through nginx.
+#
+# An example nginx server block is in infra/nginx/cam.example.conf.
+
+services:
+  caddy:
+    profiles: ["never"]
+
+  api:
+    ports:
+      - "127.0.0.1:3001:3001"
+
+  minio:
+    ports:
+      - "127.0.0.1:9000:9000"
