@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+// Treat an empty string ("FOO=" in .env) the same as the env var being unset.
+// Without this, optional URL/email fields fail validation when the operator
+// leaves them blank instead of removing the line entirely.
+const optional = <T extends z.ZodTypeAny>(schema: T) =>
+  z.preprocess((v) => (v === "" ? undefined : v), schema.optional());
+
 const envSchema = z.object({
   NODE_ENV: z
     .enum(["development", "test", "production"])
@@ -26,8 +32,8 @@ const envSchema = z.object({
     .string()
     .transform((v) => v !== "false")
     .default("true"),
-  EMAIL_FROM: z.string().email().optional(),
-  SMTP_URL: z.string().min(1).optional(),
+  EMAIL_FROM: optional(z.string().email()),
+  SMTP_URL: optional(z.string().min(1)),
 
   MINIO_ENDPOINT: z.string().min(1),
   MINIO_PORT: z.coerce.number().int().positive().default(9000),
@@ -38,7 +44,7 @@ const envSchema = z.object({
   MINIO_ACCESS_KEY: z.string().min(1),
   MINIO_SECRET_KEY: z.string().min(1),
   MINIO_BUCKET: z.string().min(1).default("dalkong-videos"),
-  MINIO_PUBLIC_BASE_URL: z.string().url().optional(),
+  MINIO_PUBLIC_BASE_URL: optional(z.string().url()),
 
   TURN_REALM: z.string().min(1),
   TURN_SHARED_SECRET: z.string().min(32),
