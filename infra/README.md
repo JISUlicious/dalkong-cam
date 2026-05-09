@@ -22,6 +22,18 @@ Two env files drive the whole stack. Both are gitignored.
 
 A handful of values appear in both files (`POSTGRES_PASSWORD`, `MINIO_*`, `TURN_SHARED_SECRET`) because they're needed at the infra layer (Compose, coturn CLI) AND inside the API. Both `.env.example` files mark them with `[SYNCED]` — they MUST match exactly.
 
+## Two deployment shapes
+
+| Where | Doc | Compose files | Reachable at |
+|---|---|---|---|
+| dev Mac (your laptop) for inner-loop iteration | [`DEV.md`](DEV.md) | `docker-compose.yml` + `.mac.yml` + `.dev.yml` | `http://<dev-mac-lan-ip>:3001` (no TLS, no Caddy) |
+| prod Mac (always-on home server) | [`PROD.md`](PROD.md) | `docker-compose.yml` + `.mac.yml` | `https://<your-domain>` (Caddy + Let's Encrypt) |
+
+Both Macs share the same code and compose files; only the `.env` values and
+which override files you pass differ. The `docker-compose.mac.yml` overlay is
+needed in both because Docker Desktop on Mac runs containers in a Linux VM,
+which breaks coturn's `network_mode: host`.
+
 ## First-boot checklist
 
 1. **Pick a subdomain** for this backend — e.g. `cam.example.com`. Add a single A/AAAA record pointing it at the VPS public IP.

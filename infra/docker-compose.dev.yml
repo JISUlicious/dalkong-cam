@@ -1,0 +1,27 @@
+# Development override.
+#
+# Use ON TOP OF the base compose file (and the Mac override if your dev host
+# is also a Mac):
+#
+#   docker compose \
+#     -f docker-compose.yml \
+#     -f docker-compose.mac.yml \
+#     -f docker-compose.dev.yml \
+#     up -d
+#
+# Differences from production:
+# - Caddy is disabled (assigned to a never-active profile). No TLS, no Let's
+#   Encrypt; the dev Mac doesn't need a public cert. Phones on the LAN talk
+#   to the api over plain HTTP for the dev round.
+# - The api is mapped to host port 3001 so the dev Mac's LAN IP serves the
+#   API directly. In prod, only Caddy is on the host network; here we cut
+#   out the proxy.
+# - DEV.md walks through the rest (env values, mobile config, smoke tests).
+
+services:
+  caddy:
+    profiles: ["never"]
+
+  api:
+    ports:
+      - "3001:3001"

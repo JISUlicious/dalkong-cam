@@ -6,6 +6,8 @@ COPY apps/api ./apps/api
 WORKDIR /repo/apps/api
 RUN npm install --no-audit --no-fund
 RUN npm run build
+# tsc doesn't copy non-TS assets; bundle the SQL migrations into dist/.
+RUN cp -r src/db/migrations dist/db/migrations
 
 FROM node:22-alpine AS runtime
 WORKDIR /repo/apps/api

@@ -1,0 +1,30 @@
+# Mac-specific override.
+#
+# Apply by passing both files to compose:
+#   docker compose -f docker-compose.yml -f docker-compose.mac.yml up -d
+#
+# Why this exists: Docker Desktop for Mac runs containers inside a Linux VM,
+# so `network_mode: host` binds to the VM's interfaces, not the Mac's. coturn
+# would not be reachable from outside the Mac. We switch coturn to bridged
+# networking with explicit port mappings and tell it the public IP via
+# `--external-ip`. This is also fine on Linux — just slightly less efficient
+# than host mode, so the default infra/docker-compose.yml stays Linux-tuned.
+
+services:
+  coturn:
+    network_mode: bridge
+    ports:
+      - "3478:3478/udp"
+      - "3478:3478/tcp"
+      - "5349:5349/tcp"
+      # Relay port range. Must be forwarded on your router too.
+      - "49152-49262:49152-49262/udp"
+    command:
+      - "-c"
+      - "/etc/coturn/turnserver.conf"
+      - "--realm=${DOMAIN:?missing}"
+      - "--server-name=${DOMAIN:?missing}"
+      - "--static-auth-secret=${TURN_SHARED_SECRET:?missing}"
+      - "--external-ip=${COTURN_EXTERNAL_IP:?missing}"
+      - "--min-port=49152"
+      - "--max-port=49262"

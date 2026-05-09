@@ -20,6 +20,12 @@ const config: ExpoConfig = {
         "Dalkong Cam saves motion-triggered recordings.",
       UIBackgroundModes: ["audio", "voip"],
       ITSAppUsesNonExemptEncryption: false,
+      // Allow plain HTTP/WS to RFC 1918 LAN addresses so the dev Mac
+      // (e.g. http://192.168.1.50:3001) can be reached without TLS.
+      // Public traffic still requires HTTPS.
+      NSAppTransportSecurity: {
+        NSAllowsLocalNetworking: true,
+      },
     },
   },
   android: {
