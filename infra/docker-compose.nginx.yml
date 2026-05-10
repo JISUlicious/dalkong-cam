@@ -11,10 +11,29 @@
 #
 # What this changes:
 # - Caddy is disabled (the external nginx terminates TLS).
-# - api and minio bind to 127.0.0.1 on the host so nginx can proxy to them
-#   without exposing those services to the LAN/internet directly. coturn
-#   still binds its own ports (3478/5349/49152-49262) — TURN traffic does
-#   not go through nginx.
+# - api and minio:
+#   - Bind to 127.0.0.1 on the host (works when nginx runs on the host, OR
+#     when nginx runs in Docker Desktop and proxies via host.docker.internal).
+#   - Also attach to an external `proxy` Docker network so an nginx running
+#     in a separate Compose stack can proxy_pass directly to `api:3001` /
+#     `minio:9000` by container name.
+# - coturn still binds its own ports (3478/5349/49152-49262) — TURN traffic
+#   does not go through nginx.
+#
+# To use the shared-network path, create the network once on the host:
+#
+#   docker network create proxy
+#
+# Then attach your nginx service to it (in your nginx stack's compose):
+#
+#   services:
+#     nginx:
+#       networks:
+#         - default
+#         - proxy
+#   networks:
+#     proxy:
+#       external: true
 #
 # An example nginx server block is in infra/nginx/cam.example.conf.
 
@@ -25,7 +44,18 @@ services:
   api:
     ports:
       - "127.0.0.1:3001:3001"
+    networks:
+      - default
+      - proxy
 
   minio:
     ports:
       - "127.0.0.1:9000:9000"
+    networks:
+      - default
+      - proxy
+
+networks:
+  proxy:
+    external: true
+    name: ${PROXY_NETWORK:-proxy}

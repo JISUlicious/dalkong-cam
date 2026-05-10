@@ -29,7 +29,9 @@ If the prod Mac already has nginx terminating TLS for other subdomains, **skip C
 and front dalkong-cam with the existing nginx instead:
 
 1. Use the `docker-compose.nginx.yml` overlay alongside the Mac one. Caddy
-   is disabled; api binds to `127.0.0.1:3001`, minio to `127.0.0.1:9000`.
+   is disabled; api binds to `127.0.0.1:3001`, minio to `127.0.0.1:9000`,
+   and both also attach to an external `proxy` Docker network for
+   container-to-container proxying.
 2. Drop [`infra/nginx/cam.example.conf`](nginx/cam.example.conf) into
    `/etc/nginx/sites-available/`, replace the domain, and `ln -s` it to
    `sites-enabled/`.
@@ -49,6 +51,21 @@ docker compose \
   -f docker-compose.nginx.yml \
   up -d --build
 ```
+
+### Where does nginx itself run?
+
+The right `proxy_pass` upstream depends on where nginx is running. The
+example config uses `proxy_pass http://api:3001` (shared network); pick the
+form that matches your setup.
+
+| nginx runs… | upstream form | extra setup |
+|---|---|---|
+| on the host (brew, systemd, …) | `http://127.0.0.1:3001` / `…:9000` | none — the `nginx.yml` override binds these on `127.0.0.1` |
+| in Docker on Docker Desktop (Mac/Win) | `http://host.docker.internal:3001` | none on Mac; on Linux add `extra_hosts: ["host.docker.internal:host-gateway"]` to the nginx service |
+| in Docker, **separate** Compose stack | `http://api:3001` / `http://minio:9000` | (a) `docker network create proxy` once on the host, (b) attach the nginx service to the `proxy` external network in its own compose, (c) start dalkong-cam with `docker-compose.nginx.yml` (already attaches api+minio to that network) |
+
+If your shared network has a different name, set `PROXY_NETWORK=<name>` in
+`infra/.env` and the compose override will pick it up.
 
 The rest of this doc (DNS, env, secrets, migrations, smoke tests) applies
 unchanged. Skip the "Caddy logs / cert obtained" section.
